@@ -17,5 +17,8 @@ urlpatterns = [
     # Application APIs
     path('api/', include('apps.accounts.urls')),
     path('api/', include('apps.academics.urls')),
+    path('api/', include('apps.facilities.urls')),
+    path('api/', include('apps.faculty.urls')),
+    path('api/', include('apps.imports.urls')),
+    path('api/', include('apps.timetable.urls')),
 ]
-

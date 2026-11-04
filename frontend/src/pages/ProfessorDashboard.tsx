@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { UserCheck, BookOpen, Calendar, Clock, Award, Building } from 'lucide-react';
+import { UserCheck, BookOpen, Calendar, Clock, Award, Building, ArrowRight, Printer, GitBranch } from 'lucide-react';
 
 export const ProfessorDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -10,63 +11,79 @@ export const ProfessorDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Banner */}
       <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-6 md:p-8 text-white shadow-sm">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white mb-3">
-          <Award className="w-3.5 h-3.5" />
-          <span>Faculty Member Portal</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Welcome, {user?.full_name || 'Professor'}
-        </h1>
-        <p className="mt-1 text-sm text-emerald-100 max-w-xl">
-          View your daily teaching schedule, course allocations, and classroom assignments across university branches.
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white mb-3">
+              <Award className="w-3.5 h-3.5" />
+              <span>Faculty Member Portal — Phase 4 Live</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Welcome, {user?.full_name || 'Professor'}
+            </h1>
+            <p className="mt-1 text-sm text-emerald-100 max-w-xl">
+              View your published weekly teaching schedule, room allocations, batch divisions, and campus holidays.
+            </p>
 
-        {profile && (
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
-            <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
-              {profile.designation}
-            </span>
-            <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
-              Department: {profile.department.name} ({profile.department.code})
-            </span>
-            <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
-              Max Load: {profile.max_hours_per_day} hrs/day
-            </span>
+            {profile && (
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
+                  {profile.designation}
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
+                  Department: {profile.department.name} ({profile.department.code})
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/20 font-medium">
+                  Max Load: {profile.max_hours_per_day} hrs/day
+                </span>
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="flex-shrink-0 flex flex-wrap items-center gap-2">
+            <Link
+              to="/my-timetable"
+              className="px-4 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-xs hover:bg-emerald-50 shadow-md transition-all flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4 text-emerald-600" />
+              <span>View My Timetable</span>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* Overview Cards */}
+      {/* Action & Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
+        <Link
+          to="/my-timetable"
+          className="p-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-emerald-500/50 hover:border-emerald-500 transition-all shadow-sm group"
+        >
+          <div className="flex items-center justify-between mb-3">
             <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <Calendar className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Personal Timetable</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Weekly schedule grid</p>
-            </div>
+            <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-all" />
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300">
-            Read-only timetable view with room numbers and batch information will be unlocked in Phase 4.
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Personal Teaching Schedule</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Weekly interactive schedule with room numbers, batch division indicators, and one-click print layout.
           </p>
-        </div>
+        </Link>
 
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
+        <Link
+          to="/branches/timetable"
+          className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition-all shadow-sm group"
+        >
+          <div className="flex items-center justify-between mb-3">
             <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <BookOpen className="w-5 h-5" />
+              <GitBranch className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Assigned Courses</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Theory & Lab Mappings</p>
-            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300">
-            Teaching assignments are fixed per university curriculum in Phase 2.
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Branch Timetables</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Explore published timetables for all departments, branches, and semesters across the university.
           </p>
-        </div>
+        </Link>
 
         <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
@@ -74,16 +91,15 @@ export const ProfessorDashboard: React.FC = () => {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Conflict Protection</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Clash-Free Assurance</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">Zero double-booking guarantee</p>
             </div>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            Atomic database reservation rows prevent overlapping slots across all branches.
+            Database reservation locks ensure you are never assigned to two cohorts or rooms at the same time.
           </p>
         </div>
       </div>
     </div>
   );
 };
-

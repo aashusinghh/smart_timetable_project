@@ -9,6 +9,13 @@ import {
   BookOpen,
   FileCode2,
   GraduationCap,
+  DoorOpen,
+  Users,
+  UserCheck,
+  FileSpreadsheet,
+  ShieldCheck,
+  FileText,
+  Coffee,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -21,7 +28,7 @@ export const Sidebar: React.FC = () => {
   const isProfessor = user.roles.includes('PROFESSOR');
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
       isActive
         ? 'bg-primary-600 text-white shadow-sm'
         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800'
@@ -38,55 +45,151 @@ export const Sidebar: React.FC = () => {
           <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
             Smart Timetable
           </h1>
-          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">University Portal</p>
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Phase 4 Real-Time & Live</p>
         </div>
       </div>
 
       {/* Nav List */}
-      <div className="flex-1 px-4 py-5 space-y-6 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 space-y-5 overflow-y-auto">
         {/* Dashboards Section */}
         <div>
-          <p className="px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-            Navigation
+          <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+            Portals
           </p>
           <nav className="space-y-1">
             {isSuperAdmin && (
               <NavLink to="/dashboard/admin" className={navLinkClass}>
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Admin Overview</span>
+                <LayoutDashboard className="w-4 h-4 text-primary-500" />
+                <span>Admin Dashboard</span>
               </NavLink>
             )}
 
             {isCoordinator && (
               <NavLink to="/dashboard/coordinator" className={navLinkClass}>
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-4 h-4 text-amber-500" />
                 <span>Coordinator Desk</span>
               </NavLink>
             )}
 
             {isProfessor && (
               <NavLink to="/dashboard/professor" className={navLinkClass}>
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-4 h-4 text-emerald-500" />
                 <span>Faculty Portal</span>
               </NavLink>
             )}
           </nav>
         </div>
 
-        {/* Administration Section (Super Admin only) */}
-        {isSuperAdmin && (
+        {/* Timetable Engine & Views (Phases 3 & 4) */}
+        <div>
+          <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+            Schedules & Live Ops
+          </p>
+          <nav className="space-y-1">
+            {(isSuperAdmin || isCoordinator) && (
+              <NavLink to="/timetable" className={navLinkClass}>
+                <Calendar className="w-4 h-4 text-primary-500" />
+                <span>Timetable Planner</span>
+              </NavLink>
+            )}
+
+            {isSuperAdmin && (
+              <NavLink to="/schedule-review" className={navLinkClass}>
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span>Schedule Review</span>
+              </NavLink>
+            )}
+
+            {(isProfessor || isSuperAdmin) && (
+              <NavLink to="/my-timetable" className={navLinkClass}>
+                <Clock className="w-4 h-4 text-blue-500" />
+                <span>My Teaching Schedule</span>
+              </NavLink>
+            )}
+
+            <NavLink to="/branches/timetable" className={navLinkClass}>
+              <GitBranch className="w-4 h-4 text-indigo-500" />
+              <span>Branch Schedules</span>
+            </NavLink>
+
+            {(isSuperAdmin || isCoordinator) && (
+              <NavLink to="/holidays" className={navLinkClass}>
+                <Coffee className="w-4 h-4 text-amber-500" />
+                <span>Holidays & Overrides</span>
+              </NavLink>
+            )}
+
+            {isSuperAdmin && (
+              <NavLink to="/audit-logs" className={navLinkClass}>
+                <FileText className="w-4 h-4 text-rose-500" />
+                <span>Audit Trail Logs</span>
+              </NavLink>
+            )}
+          </nav>
+        </div>
+
+        {/* Phase 2: Academic Master Data */}
+        {(isSuperAdmin || isCoordinator) && (
           <div>
-            <p className="px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-              University Setup
+            <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+              Academic Setup
             </p>
             <nav className="space-y-1">
-              <NavLink to="/departments" className={navLinkClass}>
-                <Building2 className="w-4 h-4" />
-                <span>Departments</span>
+              {isSuperAdmin && (
+                <>
+                  <NavLink to="/departments" className={navLinkClass}>
+                    <Building2 className="w-4 h-4" />
+                    <span>Departments</span>
+                  </NavLink>
+                  <NavLink to="/branches" className={navLinkClass}>
+                    <GitBranch className="w-4 h-4" />
+                    <span>Branches & Degrees</span>
+                  </NavLink>
+                  <NavLink to="/rooms" className={navLinkClass}>
+                    <DoorOpen className="w-4 h-4" />
+                    <span>Rooms & Facilities</span>
+                  </NavLink>
+                  <NavLink to="/terms" className={navLinkClass}>
+                    <Calendar className="w-4 h-4" />
+                    <span>Academic Terms & Slots</span>
+                  </NavLink>
+                </>
+              )}
+
+              <NavLink to="/courses" className={navLinkClass}>
+                <BookOpen className="w-4 h-4" />
+                <span>Course Catalog</span>
               </NavLink>
-              <NavLink to="/branches" className={navLinkClass}>
-                <GitBranch className="w-4 h-4" />
-                <span>Branches & Degrees</span>
+              <NavLink to="/curriculum" className={navLinkClass}>
+                <GraduationCap className="w-4 h-4" />
+                <span>Curriculum Builder</span>
+              </NavLink>
+              <NavLink to="/cohorts" className={navLinkClass}>
+                <Users className="w-4 h-4" />
+                <span>Cohorts & Batches</span>
+              </NavLink>
+              <NavLink to="/assignments" className={navLinkClass}>
+                <UserCheck className="w-4 h-4" />
+                <span>Teaching Assignments</span>
+              </NavLink>
+            </nav>
+          </div>
+        )}
+
+        {/* Phase 2: Faculty & Bulk Data */}
+        {isSuperAdmin && (
+          <div>
+            <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+              Faculty & Ingestion
+            </p>
+            <nav className="space-y-1">
+              <NavLink to="/professors" className={navLinkClass}>
+                <UserCheck className="w-4 h-4" />
+                <span>Professors Directory</span>
+              </NavLink>
+              <NavLink to="/import" className={navLinkClass}>
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>CSV Bulk Import</span>
               </NavLink>
             </nav>
           </div>
@@ -94,22 +197,22 @@ export const Sidebar: React.FC = () => {
 
         {/* System & API docs */}
         <div>
-          <p className="px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-            System & Tools
+          <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+            Developer Docs
           </p>
           <nav className="space-y-1">
             <a
               href="/api/docs/"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <FileCode2 className="w-4 h-4 text-emerald-500" />
-                <span>Swagger API Docs</span>
+                <span>Swagger OpenAPI</span>
               </div>
               <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-semibold px-1.5 py-0.5 rounded">
-                v1
+                v1.0
               </span>
             </a>
           </nav>
@@ -117,7 +220,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Role Badge in Sidebar Footer */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">
             {user.full_name?.charAt(0) || 'U'}
@@ -138,4 +241,3 @@ export const Sidebar: React.FC = () => {
     </aside>
   );
 };
-

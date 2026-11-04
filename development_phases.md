@@ -125,87 +125,87 @@ manageable via API and UI.
 ### 🔧 Backend — Phase 2
 
 #### 2.1  Facilities (`facilities` app)
-- [ ] Models: `Campus`, `Building`, `Room` (room_type, capacity),
+- [x] Models: `Campus`, `Building`, `Room` (room_type, capacity),
   `RoomUnavailability`.
-- [ ] CRUD endpoints under `/api/rooms`, `/api/buildings`, `/api/campuses`.
-- [ ] Seed room types: `CLASSROOM`, `COMPUTER_LAB`, `ELECTRONICS_LAB`,
+- [x] CRUD endpoints under `/api/rooms`, `/api/buildings`, `/api/campuses`.
+- [x] Seed room types: `CLASSROOM`, `COMPUTER_LAB`, `ELECTRONICS_LAB`,
   `CHEMISTRY_LAB`, `SEMINAR_HALL`.
 
 #### 2.2  Academic Time Structure (`academics` app)
-- [ ] Models: `AcademicYear`, `AcademicTerm`.
-- [ ] `TimeSlot` model — seed all 8 daily slots (§6 of architecture spec).
-- [ ] CRUD endpoints under `/api/academic-years` and `/api/academic-terms`.
+- [x] Models: `AcademicYear`, `AcademicTerm`.
+- [x] `TimeSlot` model — seed all 8 daily slots (§6 of architecture spec).
+- [x] CRUD endpoints under `/api/academic-years` and `/api/academic-terms`.
 
 #### 2.3  Cohorts & Lab Groups
-- [ ] `Cohort` model: `branch_id`, `term_id`, `semester_no`, `section_code`,
+- [x] `Cohort` model: `branch_id`, `term_id`, `semester_no`, `section_code`,
   `student_count` — unique `(branch_id, term_id, semester_no, section_code)`.
-- [ ] `InstructionGroup` model: `cohort_id`, `code`, `size`.
-- [ ] Validate `semester_no` ≤ `branch.max_semesters`.
-- [ ] Endpoints: `GET/POST /api/cohorts`, `/api/instruction-groups`.
+- [x] `InstructionGroup` model: `cohort_id`, `code`, `size`.
+- [x] Validate `semester_no` ≤ `branch.max_semesters`.
+- [x] Endpoints: `GET/POST /api/cohorts`, `/api/instruction-groups`.
 
 #### 2.4  Courses & Curriculum
-- [ ] `Course` model: `code`, `name`, `credit`, `course_type`
+- [x] `Course` model: `code`, `name`, `credit`, `course_type`
   (`THEORY`, `LAB`, `PROJECT`, `SEMINAR`).
-- [ ] `CourseDeliveryRule` model: `course_id`, `weekly_meetings`,
+- [x] `CourseDeliveryRule` model: `course_id`, `weekly_meetings`,
   `duration_slots`.
-- [ ] Seed required delivery rules (2-credit lab → 2x3; 3-credit → 3x1; 4-credit → 4x1).
-- [ ] `CurriculumItem` model: `branch_id`, `semester_no`, `course_id`.
-- [ ] Endpoints: `/api/courses`, `/api/curriculum`.
+- [x] Seed required delivery rules (2-credit lab → 2x3; 3-credit → 3x1; 4-credit → 4x1).
+- [x] `CurriculumItem` model: `branch_id`, `semester_no`, `course_id`.
+- [x] Endpoints: `/api/courses`, `/api/curriculum`.
 
 #### 2.5  Course Offerings & Teaching Assignments
-- [ ] `CourseOffering` model: `term_id`, `cohort_id`, `curriculum_item_id`.
-- [ ] `TeachingAssignment` model: `course_offering_id`, `professor_id`,
+- [x] `CourseOffering` model: `term_id`, `cohort_id`, `curriculum_item_id`.
+- [x] `TeachingAssignment` model: `course_offering_id`, `professor_id`,
   `instruction_group_id (nullable)`.
-- [ ] Validate professor belongs to the same department (configurable).
-- [ ] Endpoints: `/api/course-offerings`, `/api/teaching-assignments`.
+- [x] Validate professor belongs to the same department (configurable).
+- [x] Endpoints: `/api/course-offerings`, `/api/teaching-assignments`.
 
 #### 2.6  Professor Management (`faculty` app)
-- [ ] Professor user creation flow (creates `User` + `ProfessorProfile`).
-- [ ] `ProfessorUnavailability` model: weekday + slot ranges.
-- [ ] Endpoints: `GET/POST/PATCH /api/professors`,
+- [x] Professor user creation flow (creates `User` + `ProfessorProfile`).
+- [x] `ProfessorUnavailability` model: weekday + slot ranges.
+- [x] Endpoints: `GET/POST/PATCH /api/professors`,
   `/api/professors/{id}/unavailability`.
 
 #### 2.7  CSV Import (basic)
-- [ ] Import service for professors and curriculum via CSV upload.
-- [ ] Endpoint: `POST /api/curriculum/import`.
-- [ ] Validate headers, report row-level errors, import in one transaction.
+- [x] Import service for professors and curriculum via CSV upload.
+- [x] Endpoint: `POST /api/curriculum/import`.
+- [x] Validate headers, report row-level errors, import in one transaction.
 
 ---
 
 ### 🖥️ Frontend — Phase 2
 
 #### 2.1  Professor Management (Admin UI)
-- [ ] **Professor list** — searchable table with department filter.
-- [ ] **Add/Edit professor** modal — user fields + profile fields.
-- [ ] Show role badge (Coordinator / Professor).
+- [x] **Professor list** — searchable table with department filter.
+- [x] **Add/Edit professor** modal — user fields + profile fields.
+- [x] Show role badge (Coordinator / Professor).
 
 #### 2.2  Room Management UI
-- [ ] **Room list** — grouped by building, filterable by room type.
-- [ ] **Add/Edit room** modal — type selector, capacity, building picker.
+- [x] **Room list** — grouped by building, filterable by room type.
+- [x] **Add/Edit room** modal — type selector, capacity, building picker.
 
 #### 2.3  Academic Year & Term UI
-- [ ] **Academic terms list** with date range display.
-- [ ] **Add term** form with date pickers.
+- [x] **Academic terms list** with date range display.
+- [x] **Add term** form with date pickers.
 
 #### 2.4  Course & Curriculum UI
-- [ ] **Course catalog** — searchable list, add course with delivery rule form.
-- [ ] **Curriculum builder** — pick branch + semester, add/remove courses.
-- [ ] Show credit, course type, weekly meeting pattern inline.
+- [x] **Course catalog** — searchable list, add course with delivery rule form.
+- [x] **Curriculum builder** — pick branch + semester, add/remove courses.
+- [x] Show credit, course type, weekly meeting pattern inline.
 
 #### 2.5  Cohort & Lab Group UI
-- [ ] **Cohort list** — filter by branch + term.
-- [ ] **Add cohort** form with semester validation against `max_semesters`.
-- [ ] **Lab groups panel** — expandable below each cohort, add group button.
+- [x] **Cohort list** — filter by branch + term.
+- [x] **Add cohort** form with semester validation against `max_semesters`.
+- [x] **Lab groups panel** — expandable below each cohort, add group button.
 
 #### 2.6  Course Offering & Teaching Assignment UI
-- [ ] **Offerings list** — for a selected cohort/term.
-- [ ] **Assign professor** form — professor picker, optional lab group.
-- [ ] Show current assignment inline with change option.
+- [x] **Offerings list** — for a selected cohort/term.
+- [x] **Assign professor** form — professor picker, optional lab group.
+- [x] Show current assignment inline with change option.
 
 #### 2.7  CSV Import UI
-- [ ] **Import page** — drag-and-drop CSV upload, template download links.
-- [ ] Show parse errors per row before confirming import.
-- [ ] Progress indicator for large files.
+- [x] **Import page** — drag-and-drop CSV upload, template download links.
+- [x] Show parse errors per row before confirming import.
+- [x] Progress indicator for large files.
 
 ---
 
@@ -242,25 +242,25 @@ reservation saving.
 ### 🔧 Backend — Phase 3
 
 #### 3.1  Schedule Version
-- [ ] `ScheduleVersion` model: `term_id`, `version_no`, `status`
+- [x] `ScheduleVersion` model: `term_id`, `version_no`, `status`
   (`DRAFT`, `UNDER_REVIEW`, `PUBLISHED`, `ARCHIVED`), `revision`.
-- [ ] Endpoint: `POST /api/timetable/versions` — create a draft for a term.
-- [ ] Endpoint: `GET  /api/timetable/versions` — list versions.
+- [x] Endpoint: `POST /api/timetable/versions` — create a draft for a term.
+- [x] Endpoint: `GET  /api/timetable/versions` — list versions.
 
 #### 3.2  Reservation Tables
-- [ ] `ProfessorSlotReservation` — unique `(version_id, professor_id, weekday, slot_no)`.
-- [ ] `RoomSlotReservation`      — unique `(version_id, room_id, weekday, slot_no)`.
-- [ ] `GroupSlotReservation`     — unique `(version_id, group_id, weekday, slot_no)`.
-- [ ] Run migrations; verify MySQL enforces unique constraints.
+- [x] `ProfessorSlotReservation` — unique `(version_id, professor_id, weekday, slot_no)`.
+- [x] `RoomSlotReservation`      — unique `(version_id, room_id, weekday, slot_no)`.
+- [x] `GroupSlotReservation`     — unique `(version_id, group_id, weekday, slot_no)`.
+- [x] Run migrations; verify MySQL enforces unique constraints.
 
 #### 3.3  Scheduled Meetings
-- [ ] `ScheduledMeeting` model: `schedule_version_id`, `teaching_assignment_id`,
+- [x] `ScheduledMeeting` model: `schedule_version_id`, `teaching_assignment_id`,
   `weekday`, `start_slot`, `duration_slots`, `room_id`.
-- [ ] `MeetingInstructionGroup` model: `scheduled_meeting_id`,
+- [x] `MeetingInstructionGroup` model: `scheduled_meeting_id`,
   `instruction_group_id`.
 
 #### 3.4  Validation Service (`timetable/services/validator.py`)
-- [ ] Implement all rules listed in §8 of the architecture spec:
+- [x] Implement all rules listed in §8 of the architecture spec:
   - Permission check.
   - Offering belongs to correct cohort/term.
   - Duration matches delivery rule.
@@ -272,10 +272,10 @@ reservation saving.
   - Room capacity sufficient.
   - Professor/room unavailability respected.
   - Weekly meeting quota not exceeded.
-- [ ] Endpoint: `POST /api/timetable/validate` — returns `allowed`, `conflicts[]`.
+- [x] Endpoint: `POST /api/timetable/validate` — returns `allowed`, `conflicts[]`.
 
 #### 3.5  Reservation Service (`timetable/services/reservation_service.py`)
-- [ ] Implement the 10-step atomic save described in §8:
+- [x] Implement the 10-step atomic save described in §8:
   1. `transaction.atomic()`
   2. Re-validate permissions + version status
   3. Build `(weekday, slot_no)` pairs
@@ -286,66 +286,66 @@ reservation saving.
   8. Write `ScheduleChangeAudit` record
   9. Increment `schedule_versions.revision`
   10. Trigger WebSocket broadcast (stubbed; implemented in Phase 4)
-- [ ] Endpoints: `POST /api/timetable/meetings`,
+- [x] Endpoints: `POST /api/timetable/meetings`,
   `PATCH /api/timetable/meetings/{id}`,
   `DELETE /api/timetable/meetings/{id}`.
 
 #### 3.6  Timetable Grid Endpoint
-- [ ] `GET /api/timetable/{version_id}/grid` — returns structured response:
+- [x] `GET /api/timetable/{version_id}/grid` — returns structured response:
   weekday, start_slot, duration_slots, room, professor, course, groups.
-- [ ] Support query params: `?branch_id=`, `?cohort_id=`, `?professor_id=`.
+- [x] Support query params: `?branch_id=`, `?cohort_id=`, `?professor_id=`.
 
 #### 3.7  Batch Update Endpoint
-- [ ] `POST /api/timetable/batch-update` — validates and saves multiple
+- [x] `POST /api/timetable/batch-update` — validates and saves multiple
   meeting changes in one atomic transaction.
 
 #### 3.8  Audit Logging
-- [ ] `ScheduleChangeAudit` model: `meeting_id`, `action`, `before_json`,
+- [x] `ScheduleChangeAudit` model: `meeting_id`, `action`, `before_json`,
   `after_json`, `user_id`, `created_at`.
-- [ ] Write an audit row on every create / update / delete.
+- [x] Write an audit row on every create / update / delete.
 
 ---
 
 ### 🖥️ Frontend — Phase 3
 
 #### 3.1  Timetable Grid Component
-- [ ] CSS-grid weekly timetable: 8 rows (time slots) x 5 columns (Mon–Fri).
-- [ ] Lunch gap rendered as a visual separator row.
-- [ ] Color-coded cells: green / red / yellow per placement state.
-- [ ] Scheduled meetings displayed as cards inside cells.
-- [ ] Meeting card shows: course name, professor, room.
+- [x] CSS-grid weekly timetable: 8 rows (time slots) x 5 columns (Mon–Fri).
+- [x] Lunch gap rendered as a visual separator row.
+- [x] Color-coded cells: green / red / yellow per placement state.
+- [x] Scheduled meetings displayed as cards inside cells.
+- [x] Meeting card shows: course name, professor, room.
 
 #### 3.2  Drag-and-Drop Scheduling
-- [ ] Use `@dnd-kit/core` or HTML5 native drag-and-drop.
-- [ ] On drag-start: highlight valid and invalid slots with color hints.
-- [ ] On hover over a slot: debounced call to `POST /api/timetable/validate`.
+- [x] Use `@dnd-kit/core` or HTML5 native drag-and-drop.
+- [x] On drag-start: highlight valid and invalid slots with color hints.
+- [x] On hover over a slot: debounced call to `POST /api/timetable/validate`.
   - Green overlay → `allowed: true`.
   - Red overlay → `allowed: false` with conflict tooltip.
   - Yellow → soft warning.
-- [ ] On drop: call `POST /api/timetable/meetings`, show success/error toast.
+- [x] On drop: call `POST /api/timetable/meetings`, show success/error toast.
 
 #### 3.3  Conflict Panel
-- [ ] Side panel listing all current conflicts for the open draft version.
-- [ ] Each item shows: type (PROFESSOR_BUSY, ROOM_BUSY, GROUP_BUSY), slot, reason.
-- [ ] Auto-refreshes on every save action.
+- [x] Side panel listing all current conflicts for the open draft version.
+- [x] Each item shows: type (PROFESSOR_BUSY, ROOM_BUSY, GROUP_BUSY), slot, reason.
+- [x] Auto-refreshes on every save action.
 
 #### 3.4  Meeting Detail Modal
-- [ ] Click on a meeting card → modal with full details.
-- [ ] Buttons: **Edit** (change room / slot), **Delete**.
-- [ ] Confirmation prompt before delete.
+- [x] Click on a meeting card → modal with full details.
+- [x] Buttons: **Edit** (change room / slot), **Delete**.
+- [x] Confirmation prompt before delete.
 
 #### 3.5  Cohort Timetable Selector
-- [ ] Dropdown chain: branch → term → cohort → schedule version.
-- [ ] Grid updates reactively when selection changes.
+- [x] Dropdown chain: branch → term → cohort → schedule version.
+- [x] Grid updates reactively when selection changes.
 
 #### 3.6  Available Rooms Panel
-- [ ] For the currently hovered slot, list free compatible rooms.
-- [ ] Filter by room type matching the course.
+- [x] For the currently hovered slot, list free compatible rooms.
+- [x] Filter by room type matching the course.
 
 #### 3.7  Validation Feedback UI
-- [ ] Global error banner for 409 Conflict responses.
-- [ ] Per-slot tooltip with conflict type and message.
-- [ ] Toast notifications for successful saves.
+- [x] Global error banner for 409 Conflict responses.
+- [x] Per-slot tooltip with conflict type and message.
+- [x] Toast notifications for successful saves.
 
 ---
 
@@ -383,78 +383,78 @@ personal timetable view, branch timetable view, and audit log UI.
 ### 🔧 Backend — Phase 4
 
 #### 4.1  Django Channels & Redis
-- [ ] Configure `CHANNEL_LAYERS` with Redis backend.
-- [ ] `asgi.py` — route HTTP to Django, WS to Channels.
-- [ ] `TimetableConsumer`: handles `/ws/timetable/{version_id}/`.
-- [ ] `NotificationConsumer`: handles `/ws/notifications/`.
+- [x] Configure `CHANNEL_LAYERS` with Redis backend.
+- [x] `asgi.py` — route HTTP to Django, WS to Channels.
+- [x] `TimetableConsumer`: handles `/ws/timetable/{version_id}/`.
+- [x] `NotificationConsumer`: handles `/ws/notifications/`.
 
 #### 4.2  WebSocket Events
-- [ ] Broadcast after every save: `meeting.created`, `meeting.updated`,
+- [x] Broadcast after every save: `meeting.created`, `meeting.updated`,
   `meeting.deleted`, `schedule.revision.changed`.
-- [ ] After publish: broadcast `schedule.published`.
-- [ ] After conflict on save: send `validation.conflict` to saving client only.
+- [x] After publish: broadcast `schedule.published`.
+- [x] After conflict on save: send `validation.conflict` to saving client only.
 
 #### 4.3  Publication Workflow
-- [ ] `POST /api/timetable/{version_id}/submit-review` → status: `UNDER_REVIEW`.
-- [ ] `POST /api/timetable/{version_id}/publish` (Admin only):
+- [x] `POST /api/timetable/{version_id}/submit-review` → status: `UNDER_REVIEW`.
+- [x] `POST /api/timetable/{version_id}/publish` (Admin only):
   - Run final full-sweep validation.
   - If clean: status → `PUBLISHED`, archive previous published version.
   - If conflicts: return 422 with conflict list.
-- [ ] Never mutate a `PUBLISHED` version; new changes require a new `DRAFT`.
+- [x] Never mutate a `PUBLISHED` version; new changes require a new `DRAFT`.
 
 #### 4.4  Read-Only Timetable Endpoints
-- [ ] `GET /api/my-timetable` — professor's own published timetable.
-- [ ] `GET /api/professors/{id}/timetable` — admin view.
-- [ ] `GET /api/branches/{id}/timetable` — branch public timetable.
+- [x] `GET /api/my-timetable` — professor's own published timetable.
+- [x] `GET /api/professors/{id}/timetable` — admin view.
+- [x] `GET /api/branches/{id}/timetable` — branch public timetable.
 
 #### 4.5  Holiday Calendar & Date Overrides
-- [ ] `HolidayCalendar` model: `term_id`, `date`, `reason`.
-- [ ] `DateOverride` model: `scheduled_meeting_id`, `original_date`,
+- [x] `HolidayCalendar` model: `term_id`, `date`, `reason`.
+- [x] `DateOverride` model: `scheduled_meeting_id`, `original_date`,
   `new_date`, `new_slot`, `status` (CANCELLED / RESCHEDULED).
-- [ ] Endpoints: `/api/holidays`, `/api/date-overrides`.
+- [x] Endpoints: `/api/holidays`, `/api/date-overrides`.
 
 #### 4.6  Audit Log API
-- [ ] `GET /api/audit-logs` — paginated, filterable by meeting / user / date.
-- [ ] Super Admin only.
+- [x] `GET /api/audit-logs` — paginated, filterable by meeting / user / date.
+- [x] Super Admin only.
 
 ---
 
 ### 🖥️ Frontend — Phase 4
 
 #### 4.1  WebSocket Client
-- [ ] `useTimetableSocket(versionId)` hook connecting to `/ws/timetable/{version_id}/`.
-- [ ] On `meeting.*` events → update TanStack Query cache without reload.
-- [ ] "Live" animated indicator when WS is connected.
-- [ ] Reconnect with exponential back-off on disconnect.
+- [x] `useTimetableSocket(versionId)` hook connecting to `/ws/timetable/{version_id}/`.
+- [x] On `meeting.*` events → update TanStack Query cache without reload.
+- [x] "Live" animated indicator when WS is connected.
+- [x] Reconnect with exponential back-off on disconnect.
 
 #### 4.2  Version Status Bar
-- [ ] Display current version status badge.
-- [ ] Coordinator: **Submit for Review** button (DRAFT only).
-- [ ] Admin: **Publish** button (UNDER_REVIEW only) with confirmation dialog.
-- [ ] Publish button disabled with tooltip when conflicts exist.
+- [x] Display current version status badge.
+- [x] Coordinator: **Submit for Review** button (DRAFT only).
+- [x] Admin: **Publish** button (UNDER_REVIEW only) with confirmation dialog.
+- [x] Publish button disabled with tooltip when conflicts exist.
 
 #### 4.3  Professor Personal Timetable
-- [ ] Route: `/my-timetable` (Professor role, read-only).
-- [ ] Weekly grid coloured by course type.
-- [ ] **Print** button triggers `window.print()`.
+- [x] Route: `/my-timetable` (Professor role, read-only).
+- [x] Weekly grid coloured by course type.
+- [x] **Print** button triggers `window.print()`.
 
 #### 4.4  Branch Timetable View
-- [ ] Route: `/branches/:id/timetable` (all roles, read-only).
-- [ ] Cohort/section selector at top; no edit controls shown.
+- [x] Route: `/branches/:id/timetable` (all roles, read-only).
+- [x] Cohort/section selector at top; no edit controls shown.
 
 #### 4.5  Schedule Review Page (Admin)
-- [ ] List all `UNDER_REVIEW` versions with summary stats.
-- [ ] Click → read-only grid with conflict overlay.
-- [ ] **Approve & Publish** / **Send Back to Draft** buttons.
+- [x] List all `UNDER_REVIEW` versions with summary stats.
+- [x] Click → read-only grid with conflict overlay.
+- [x] **Approve & Publish** / **Send Back to Draft** buttons.
 
 #### 4.6  Audit Log Viewer (Admin UI)
-- [ ] Paginated table: timestamp, user, action, before/after JSON diff.
-- [ ] Filter by date range, user, meeting.
-- [ ] Expandable row to show full diff.
+- [x] Paginated table: timestamp, user, action, before/after JSON diff.
+- [x] Filter by date range, user, meeting.
+- [x] Expandable row to show full diff.
 
 #### 4.7  Holiday & Date Override UI
-- [ ] **Holiday calendar** — month view, add/remove holidays.
-- [ ] **Date overrides** — list of cancelled/rescheduled meetings, add override from meeting detail.
+- [x] **Holiday calendar** — month view, add/remove holidays.
+- [x] **Date overrides** — list of cancelled/rescheduled meetings, add override from meeting detail.
 
 ---
 
@@ -680,3 +680,4 @@ production Docker deployment, and end-to-end tests.
 | API docs | drf-spectacular (OpenAPI) |
 | Testing | pytest-django, Playwright |
 | Deployment | Docker, Nginx, Daphne/Uvicorn |
+

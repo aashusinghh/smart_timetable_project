@@ -10,6 +10,20 @@ import { CoordinatorDashboard } from './pages/CoordinatorDashboard';
 import { ProfessorDashboard } from './pages/ProfessorDashboard';
 import { DepartmentsPage } from './pages/DepartmentsPage';
 import { BranchesPage } from './pages/BranchesPage';
+import { RoomsPage } from './pages/RoomsPage';
+import { AcademicTermsPage } from './pages/AcademicTermsPage';
+import { CoursesPage } from './pages/CoursesPage';
+import { CurriculumPage } from './pages/CurriculumPage';
+import { CohortsPage } from './pages/CohortsPage';
+import { TeachingAssignmentsPage } from './pages/TeachingAssignmentsPage';
+import { ProfessorsPage } from './pages/ProfessorsPage';
+import { ImportPage } from './pages/ImportPage';
+import { TimetablePlannerPage } from './pages/TimetablePlannerPage';
+import { MyTimetablePage } from './pages/MyTimetablePage';
+import { BranchTimetablePage } from './pages/BranchTimetablePage';
+import { ScheduleReviewPage } from './pages/ScheduleReviewPage';
+import { AuditLogsPage } from './pages/AuditLogsPage';
+import { HolidaysPage } from './pages/HolidaysPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -102,6 +116,124 @@ export const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Phase 2: Facilities & Academic Setup */}
+              <Route
+                path="/rooms"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <RoomsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <AcademicTermsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <CoursesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/curriculum"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <CurriculumPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cohorts"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <CohortsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assignments"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <TeachingAssignmentsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Phase 2: Faculty & CSV Ingestion */}
+              <Route
+                path="/professors"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <ProfessorsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/import"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <ImportPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Phase 3 & 4: Timetable Operations */}
+              <Route
+                path="/timetable"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <TimetablePlannerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-timetable"
+                element={
+                  <ProtectedRoute allowedRoles={['PROFESSOR', 'SUPER_ADMIN']}>
+                    <MyTimetablePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/branches/timetable"
+                element={<BranchTimetablePage />}
+              />
+              <Route
+                path="/branches/:id/timetable"
+                element={<BranchTimetablePage />}
+              />
+              <Route
+                path="/schedule-review"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <ScheduleReviewPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/audit-logs"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                    <AuditLogsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/holidays"
+                element={
+                  <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'BRANCH_COORDINATOR']}>
+                    <HolidaysPage />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Fallback */}
@@ -114,4 +246,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-
