@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'channels',
+    'django_celery_results',
 
     # Local apps
     'apps.accounts',
@@ -180,10 +181,45 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Cache Configuration (default to LocMem in dev for zero-dependency execution)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'smart-timetable-cache',
+    }
+}
+
 # Celery Configuration
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='django-db')
+CELERY_CACHE_BACKEND = config('CELERY_CACHE_BACKEND', default='django-cache')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=False, cast=bool)
+
+# Queues: default, scheduler, imports
+from kombu import Queue, Exchange
+CELERY_QUEUES = (
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('scheduler', Exchange('scheduler'), routing_key='scheduler'),
+    Queue('imports', Exchange('imports'), routing_key='imports'),
+)
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_TASK_ROUTES = {
+    'apps.scheduler.tasks.*': {'queue': 'scheduler'},
+    'apps.imports.tasks.*': {'queue': 'imports'},
+    '*': {'queue': 'default'},
+}
+
+# Celery Beat Configuration
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-stale-proposals': {
+        'task': 'apps.scheduler.tasks.cleanup_stale_proposals',
+        'schedule': 86400.0,  # Run daily
+    },
+}
+

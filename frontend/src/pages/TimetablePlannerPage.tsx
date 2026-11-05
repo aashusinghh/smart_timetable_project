@@ -24,12 +24,18 @@ import {
   Wifi,
   WifiOff,
   ShieldCheck,
+  Award,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTimetableSocket } from '../hooks/useTimetableSocket';
 import { timetableService } from '../services/timetable';
 import { academicsService } from '../services/academics';
 import { facilitiesService } from '../services/facilities';
+import { schedulerService } from '../services/scheduler';
+import { AutoGenerateModal } from '../components/scheduler/AutoGenerateModal';
+import { GenerationProgressModal } from '../components/scheduler/GenerationProgressModal';
+import { ProposalPreviewModal } from '../components/scheduler/ProposalPreviewModal';
 import {
   ScheduleVersion,
   ScheduledMeeting,
@@ -42,6 +48,7 @@ import {
   Branch,
   AcademicTerm,
   Room,
+  AutoScheduleProposal,
 } from '../types';
 
 const WEEKDAYS = [
@@ -89,6 +96,15 @@ export const TimetablePlannerPage: React.FC = () => {
   const [newVersionName, setNewVersionName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Phase 5 Auto-Scheduler State
+  const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<AutoScheduleProposal | null>(null);
+  const [isCommittingProposal, setIsCommittingProposal] = useState(false);
+  const [isDiscardingProposal, setIsDiscardingProposal] = useState(false);
 
   // Queries
   const { data: terms = [] } = useQuery({
@@ -141,6 +157,19 @@ export const TimetablePlannerPage: React.FC = () => {
   const { data: rooms = [] } = useQuery({
     queryKey: ['rooms'],
     queryFn: () => facilitiesService.getRooms(),
+  });
+
+  // Branches query (for auto-scheduling branch picker)
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => academicsService.getBranches(),
+  });
+
+  // Schedule Quality Score query
+  const { data: qualityScoreData, refetch: refetchScore } = useQuery({
+    queryKey: ['timetable-score', activeVersion?.id],
+    queryFn: () => (activeVersion ? schedulerService.getTimetableScore(activeVersion.id) : null),
+    enabled: !!activeVersion,
   });
 
   // Mutations
@@ -250,6 +279,77 @@ export const TimetablePlannerPage: React.FC = () => {
       setErrorMessage(msg);
     },
   });
+
+  const isAuthorizedToAutoSchedule = isSuperAdmin || user?.roles?.includes('BRANCH_COORDINATOR');
+
+  // Auto-Scheduling Handlers
+  const handleStartGeneration = async (config: {
+    branch_ids: number[];
+    time_limit: number;
+    replace_existing: boolean;
+  }) => {
+    if (!activeVersion) return;
+    try {
+      const res = await schedulerService.generateTimetable(activeVersion.id, config);
+      setActiveTaskId(res.task_id);
+      setIsAutoGenerateModalOpen(false);
+      setIsProgressModalOpen(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || 'Failed to start auto-scheduling.';
+      setErrorMessage(msg);
+    }
+  };
+
+  const handleGenerationComplete = async (proposalId: number) => {
+    if (!activeVersion) return;
+    setIsProgressModalOpen(false);
+    try {
+      const prop = await schedulerService.getProposal(activeVersion.id, proposalId);
+      setSelectedProposal(prop);
+      setIsPreviewModalOpen(true);
+    } catch (err: any) {
+      setErrorMessage('Failed to load generated proposal preview.');
+    }
+  };
+
+  const handleCommitProposal = async (proposalId: number) => {
+    if (!activeVersion) return;
+    setIsCommittingProposal(true);
+    try {
+      const res = await schedulerService.commitProposal(activeVersion.id, proposalId);
+      setIsPreviewModalOpen(false);
+      setSelectedProposal(null);
+      refetchGrid();
+      refetchScore();
+      queryClient.invalidateQueries({ queryKey: ['timetable-versions'] });
+      setSuccessToast(`🎉 ${res.message || 'Proposal committed successfully!'}`);
+      setTimeout(() => setSuccessToast(null), 4000);
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.detail ||
+        err.response?.data?.conflicts?.[0]?.message ||
+        'Failed to commit proposal. A conflict may have occurred.';
+      setErrorMessage(msg);
+    } finally {
+      setIsCommittingProposal(false);
+    }
+  };
+
+  const handleDiscardProposal = async (proposalId: number) => {
+    if (!activeVersion) return;
+    setIsDiscardingProposal(true);
+    try {
+      await schedulerService.discardProposal(activeVersion.id, proposalId);
+      setIsPreviewModalOpen(false);
+      setSelectedProposal(null);
+      setSuccessToast('Proposal discarded successfully.');
+      setTimeout(() => setSuccessToast(null), 3000);
+    } catch (err: any) {
+      setErrorMessage('Failed to discard proposal.');
+    } finally {
+      setIsDiscardingProposal(false);
+    }
+  };
 
   // Set default selections
   useEffect(() => {
@@ -392,17 +492,28 @@ export const TimetablePlannerPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Phase 4 — Real-Time WebSocket Sync & Publication Lifecycle</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Phase 5 — Smart Auto-Scheduling with OR-Tools CP-SAT</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Timetable Planner</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Drag or click courses into weekly time slots with real-time collision detection and atomic reservation locking.
+            Drag or click courses into weekly time slots or use AI auto-scheduling with Google OR-Tools optimization.
           </p>
         </div>
 
         {/* Action Controls & Live Sync */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Quality Score Badge */}
+          {qualityScoreData && (
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-xs"
+              title="Schedule Quality Score"
+            >
+              <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Score: {qualityScoreData.overall_score.toFixed(1)}/100</span>
+            </div>
+          )}
+
           {/* WebSocket Status Indicator */}
           {isConnected ? (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
@@ -414,6 +525,18 @@ export const TimetablePlannerPage: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-slate-400"></span>
               <span>Connecting...</span>
             </div>
+          )}
+
+          {/* Phase 5 Auto-Generate Button */}
+          {isAuthorizedToAutoSchedule && activeVersion?.status === 'DRAFT' && (
+            <button
+              onClick={() => setIsAutoGenerateModalOpen(true)}
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-700 hover:from-primary-700 hover:to-indigo-700 text-white shadow-md shadow-primary-500/25 transition-all flex items-center gap-1.5"
+              title="Smart automatic timetable generator with Google OR-Tools"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>Auto-Generate</span>
+            </button>
           )}
 
           {/* Workflow Action Buttons */}
@@ -941,6 +1064,34 @@ export const TimetablePlannerPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Phase 5 Modals */}
+      <AutoGenerateModal
+        isOpen={isAutoGenerateModalOpen}
+        onClose={() => setIsAutoGenerateModalOpen(false)}
+        branches={branches}
+        onStartGeneration={handleStartGeneration}
+      />
+
+      <GenerationProgressModal
+        isOpen={isProgressModalOpen}
+        taskId={activeTaskId}
+        onComplete={handleGenerationComplete}
+        onCancel={() => {
+          setIsProgressModalOpen(false);
+          setActiveTaskId(null);
+        }}
+      />
+
+      <ProposalPreviewModal
+        isOpen={isPreviewModalOpen}
+        proposal={selectedProposal}
+        onClose={() => setIsPreviewModalOpen(false)}
+        onCommit={handleCommitProposal}
+        onDiscard={handleDiscardProposal}
+        isCommitting={isCommittingProposal}
+        isDiscarding={isDiscardingProposal}
+      />
     </div>
   );
 };
