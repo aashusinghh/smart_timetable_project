@@ -532,3 +532,121 @@ export interface WebSocketTimetableEvent {
   status?: ScheduleStatus;
 }
 
+// ==========================================
+// Phase 5 Types: Smart Auto-Scheduling
+// ==========================================
+
+export type ProposalStatus = 'PENDING' | 'COMMITTED' | 'DISCARDED' | 'FAILED';
+export type SolverStatus = 'OPTIMAL' | 'FEASIBLE' | 'INFEASIBLE' | 'UNKNOWN' | 'MODEL_INVALID' | 'TIMEOUT';
+
+export interface ProposedMeeting {
+  teaching_assignment_id: number;
+  course_code: string;
+  course_name: string;
+  course_type: CourseType;
+  cohort_id: number;
+  cohort_name: string;
+  branch_id: number;
+  professor_id: number;
+  professor_name: string;
+  room_id: number;
+  room_no: string;
+  building_code: string;
+  room_type: RoomType;
+  weekday: number;
+  start_slot: number;
+  duration_slots: number;
+  instruction_group_ids?: number[];
+}
+
+export interface UnscheduledOffering {
+  assignment_id?: number;
+  course_code?: string;
+  course_name?: string;
+  cohort?: string;
+  professor?: string;
+  meeting_index?: number;
+  reason: string;
+}
+
+export interface ConstraintScoreBreakdown {
+  student_gaps_score: number;
+  professor_gaps_score: number;
+  load_balance_score: number;
+  consecutive_hours_score: number;
+  slot_preference_score: number;
+  day_spread_score: number;
+}
+
+export interface ScheduleMetrics {
+  student_gap_hours: number;
+  professor_gap_hours: number;
+  max_consecutive_hours: number;
+  total_scheduled_meetings: number;
+  total_unscheduled_meetings: number;
+}
+
+export interface ScheduleScoreReport {
+  overall_score: number;
+  breakdown: ConstraintScoreBreakdown;
+  metrics: ScheduleMetrics;
+}
+
+export interface AutoScheduleProposal {
+  id: number;
+  schedule_version: number;
+  selected_branches: number[];
+  proposed_meetings: ProposedMeeting[];
+  solver_status: SolverStatus;
+  quality_score: number;
+  unscheduled_offerings: UnscheduledOffering[];
+  constraint_score_breakdown: {
+    overall_score?: number;
+    breakdown?: ConstraintScoreBreakdown;
+    metrics?: ScheduleMetrics;
+  };
+  generation_metadata: {
+    solve_time_seconds?: number;
+    total_tasks?: number;
+    placed_meetings?: number;
+    unscheduled_meetings?: number;
+    replace_existing?: boolean;
+    selected_branches?: number[];
+    solver_objective?: number | null;
+  };
+  status: ProposalStatus;
+  created_by?: number | null;
+  created_by_name?: string;
+  created_by_email?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GenerateTimetableInput {
+  branch_ids?: number[];
+  time_limit?: number;
+  replace_existing?: boolean;
+}
+
+export interface TaskStatusResponse {
+  task_id: string;
+  status: 'PENDING' | 'PROGRESS' | 'SUCCESS' | 'FAILURE';
+  percentage: number;
+  message: string;
+  proposal_id?: number | null;
+  quality_score?: number | null;
+  solver_status?: SolverStatus | null;
+  placed_count?: number | null;
+  unscheduled_count?: number | null;
+  error?: string | null;
+  updated_at?: string;
+}
+
+export interface CommitProposalResponse {
+  status: string;
+  proposal_id: number;
+  version_id: number;
+  committed_meetings_count: number;
+  message: string;
+}
+

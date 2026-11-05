@@ -21,4 +21,5 @@ urlpatterns = [
     path('api/', include('apps.faculty.urls')),
     path('api/', include('apps.imports.urls')),
     path('api/', include('apps.timetable.urls')),
+    path('api/', include('apps.scheduler.urls')),
 ]

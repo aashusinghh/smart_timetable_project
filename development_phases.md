@@ -489,57 +489,57 @@ background Celery task, with a preview UI before committing.
 ### 🔧 Backend — Phase 5
 
 #### 5.1  Celery Setup
-- [ ] Configure `celery.py` in `config/`.
-- [ ] Install `celery[redis]` and `django-celery-results`.
-- [ ] Register task queues: `default`, `scheduler`, `imports`.
-- [ ] Add Celery Beat for recurring maintenance tasks.
+- [x] Configure `celery.py` in `config/`.
+- [x] Install `celery[redis]` and `django-celery-results`.
+- [x] Register task queues: `default`, `scheduler`, `imports`.
+- [x] Add Celery Beat for recurring maintenance tasks.
 
 #### 5.2  Generator Service (`scheduler/services/generator.py`)
-- [ ] Load all `TeachingAssignment` records for the requested term.
-- [ ] Build CP-SAT model with variables `(assignment, weekday, start_slot, room)`.
-- [ ] Implement all hard constraints from §10 of architecture spec.
-- [ ] Implement soft constraints with CP-SAT objective function.
-- [ ] Solve with configurable time limit (default 60 s).
+- [x] Load all `TeachingAssignment` records for the requested term.
+- [x] Build CP-SAT model with variables `(assignment, weekday, start_slot, room)`.
+- [x] Implement all hard constraints from §10 of architecture spec.
+- [x] Implement soft constraints with CP-SAT objective function.
+- [x] Solve with configurable time limit (default 60 s).
 
 #### 5.3  Scheduling Task
-- [ ] Celery task `generate_timetable(version_id, branch_ids, time_limit)`.
-- [ ] Save progress percentage to Redis for polling.
-- [ ] On completion: store candidate meetings in `AutoScheduleProposal` table.
-- [ ] Endpoint: `POST /api/timetable/{version_id}/generate` → returns `task_id`.
-- [ ] Endpoint: `GET  /api/tasks/{task_id}/status` → returns progress + result.
+- [x] Celery task `generate_timetable(version_id, branch_ids, time_limit)`.
+- [x] Save progress percentage to Redis for polling.
+- [x] On completion: store candidate meetings in `AutoScheduleProposal` table.
+- [x] Endpoint: `POST /api/timetable/{version_id}/generate` → returns `task_id`.
+- [x] Endpoint: `GET  /api/tasks/{task_id}/status` → returns progress + result.
 
 #### 5.4  Proposal Review & Commit
-- [ ] `GET /api/timetable/{version_id}/proposals` — return proposed meetings.
-- [ ] `POST /api/timetable/{version_id}/commit-proposal` — batch reservation-save.
-- [ ] If conflict at commit time → 409 with detail.
+- [x] `GET /api/timetable/{version_id}/proposals` — return proposed meetings.
+- [x] `POST /api/timetable/{version_id}/commit-proposal` — batch reservation-save.
+- [x] If conflict at commit time → 409 with detail.
 
 #### 5.5  Scoring Report
-- [ ] Scoring service evaluates schedule against soft constraints.
-- [ ] Endpoint: `GET /api/timetable/{version_id}/score` — score breakdown.
+- [x] Scoring service evaluates schedule against soft constraints.
+- [x] Endpoint: `GET /api/timetable/{version_id}/score` — score breakdown.
 
 ---
 
 ### 🖥️ Frontend — Phase 5
 
 #### 5.1  Auto-Generate Button
-- [ ] **Auto-Generate** button on timetable planner (Admin/Coordinator).
-- [ ] Configuration dialog: select branches, time limit, replace-existing checkbox.
-- [ ] Calls `POST /api/timetable/{version_id}/generate`.
+- [x] **Auto-Generate** button on timetable planner (Admin/Coordinator).
+- [x] Configuration dialog: select branches, time limit, replace-existing checkbox.
+- [x] Calls `POST /api/timetable/{version_id}/generate`.
 
 #### 5.2  Generation Progress UI
-- [ ] Full-screen progress modal with animated spinner.
-- [ ] Percentage from polling `GET /api/tasks/{task_id}/status`.
-- [ ] Cancel button.
-- [ ] On completion → transition to Proposal Preview.
+- [x] Full-screen progress modal with animated spinner.
+- [x] Percentage from polling `GET /api/tasks/{task_id}/status`.
+- [x] Cancel button.
+- [x] On completion → transition to Proposal Preview.
 
 #### 5.3  Proposal Preview Page
-- [ ] Read-only timetable grid showing the proposed schedule.
-- [ ] Sidebar: quality score, unscheduled offerings, soft-constraint breakdown.
-- [ ] **Commit Proposal** and **Discard** buttons.
+- [x] Read-only timetable grid showing the proposed schedule.
+- [x] Sidebar: quality score, unscheduled offerings, soft-constraint breakdown.
+- [x] **Commit Proposal** and **Discard** buttons.
 
 #### 5.4  Scoring Dashboard
-- [ ] Visual bar chart for soft-constraint scores.
-- [ ] Table of unscheduled offerings with reason.
+- [x] Visual bar chart for soft-constraint scores.
+- [x] Table of unscheduled offerings with reason.
 
 ---
 
