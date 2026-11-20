@@ -202,18 +202,18 @@ export const ProfessorsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
             <UserCheck className="w-3.5 h-3.5" />
             <span>Faculty Management</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Professors & Faculty</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Professors & Faculty</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Manage university faculty profiles, daily teaching limits, department affiliations, and unavailable slots.
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Professor</span>
@@ -221,7 +221,7 @@ export const ProfessorsPage: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center gap-3">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px] relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -248,7 +248,7 @@ export const ProfessorsPage: React.FC = () => {
       </div>
 
       {/* Professors Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-xs text-slate-500">Loading faculty members...</div>
         ) : filteredProfessors.length === 0 ? (
@@ -274,11 +274,11 @@ export const ProfessorsPage: React.FC = () => {
                     <tr key={prof.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold flex items-center justify-center">
                             {prof.full_name.charAt(0)}
                           </div>
                           <div>
-                            <span className="font-bold text-slate-900 dark:text-white block">
+                            <span className="font-semibold text-slate-900 dark:text-white block">
                               {prof.full_name}
                             </span>
                             <span className="text-slate-400 text-[11px] font-mono">{prof.email}</span>
@@ -306,7 +306,7 @@ export const ProfessorsPage: React.FC = () => {
                       </td>
                       <td className="px-5 py-3.5">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-semibold ${
                             isCoord
                               ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                               : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
@@ -345,10 +345,10 @@ export const ProfessorsPage: React.FC = () => {
 
       {/* Add / Edit Professor Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {editingProf ? 'Edit Faculty Profile' : 'Add New Faculty Member'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -444,7 +444,7 @@ export const ProfessorsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700"
+                  className="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700"
                 >
                   {isSubmitting ? 'Saving...' : editingProf ? 'Update Profile' : 'Create Professor'}
                 </button>
@@ -456,11 +456,11 @@ export const ProfessorsPage: React.FC = () => {
 
       {/* Professor Unavailability Modal */}
       {unavailProf && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   Unavailable Slots — {unavailProf.full_name}
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -504,9 +504,9 @@ export const ProfessorsPage: React.FC = () => {
             {/* Add Form */}
             <form
               onSubmit={handleUnavailSubmit((data) => addUnavailMutation.mutate(data))}
-              className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+              className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-md border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
             >
-              <h3 className="font-bold text-slate-800 dark:text-slate-200">Add Unavailable Time Block</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200">Add Unavailable Time Block</h3>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-medium text-slate-500">Recurring Weekday</label>

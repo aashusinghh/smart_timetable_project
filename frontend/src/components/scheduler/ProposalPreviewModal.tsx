@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   X,
-  Sparkles,
+  CalendarCog,
   Check,
   Trash2,
   Filter,
@@ -99,23 +99,21 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
   const replaceExisting = proposal.generation_metadata?.replace_existing ?? false;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-      <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden animate-scale-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+      <div className="bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden">
         {/* Top Header */}
         <div className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-2xl text-white shadow-md shadow-primary-500/25">
-              <Sparkles className="w-6 h-6 text-amber-300" />
-            </div>
+            <CalendarCog className="w-6 h-6 text-primary-700 dark:text-primary-300" strokeWidth={1.5} />
             <div>
               <div className="flex items-center gap-2.5">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                   Auto-Schedule Proposal Preview
                 </h3>
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
+                <span className="text-xs px-2.5 py-0.5 rounded font-semibold bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
                   Proposal #{proposal.id}
                 </span>
-                <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                <span className={`text-xs px-2.5 py-0.5 rounded font-semibold uppercase tracking-wider ${
                   proposal.solver_status === 'OPTIMAL' || proposal.solver_status === 'FEASIBLE'
                     ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                     : 'bg-red-100 text-red-700'
@@ -126,7 +124,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-3">
                 <span>Total Meetings Placed: <b className="text-slate-700 dark:text-slate-200">{proposal.proposed_meetings.length}</b></span>
                 <span>•</span>
-                <span>Quality Score: <b className="text-primary-600 dark:text-primary-400 font-bold">{proposal.quality_score.toFixed(1)} / 100</b></span>
+                <span>Quality Score: <b className="text-primary-600 dark:text-primary-400 font-semibold">{proposal.quality_score.toFixed(1)} / 100</b></span>
                 <span>•</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -138,12 +136,12 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
 
           {/* Navigation Tabs */}
           <div className="flex items-center gap-2">
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-md text-xs font-semibold">
               <button
                 onClick={() => setActiveTab('grid')}
                 className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                   activeTab === 'grid'
-                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 shadow-sm'
+                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 '
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
@@ -154,7 +152,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                 onClick={() => setActiveTab('scoring')}
                 className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                   activeTab === 'scoring'
-                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 shadow-sm'
+                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 '
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
@@ -165,7 +163,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                 onClick={() => setActiveTab('list')}
                 className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                   activeTab === 'list'
-                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 shadow-sm'
+                    ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 '
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
@@ -176,7 +174,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             >
               <X className="w-5 h-5" />
             </button>
@@ -188,7 +186,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
           {activeTab === 'grid' && (
             <div className="space-y-4">
               {/* Cohort Selector */}
-              <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <Filter className="w-4 h-4 text-primary-500" />
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
@@ -197,7 +195,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                   <select
                     value={selectedCohortId}
                     onChange={(e) => setSelectedCohortId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-                    className="text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary-500"
                   >
                     <option value="ALL">All Cohorts ({proposal.proposed_meetings.length} meetings)</option>
                     {cohorts.map((c) => (
@@ -214,15 +212,15 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
               </div>
 
               {/* Weekly Timetable Grid */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-x-auto">
                 <table className="w-full border-collapse min-w-[850px]">
                   <thead>
                     <tr className="bg-slate-100/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
-                      <th className="p-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-28">
+                      <th className="p-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-28">
                         Time Slot
                       </th>
                       {WEEKDAYS.map((day) => (
-                        <th key={day.id} className="p-3 text-center text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                        <th key={day.id} className="p-3 text-center text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
                           {day.name}
                         </th>
                       ))}
@@ -235,7 +233,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                         <React.Fragment key={slot.no}>
                           <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                             <td className="p-3 bg-slate-50/50 dark:bg-slate-800/40 border-r border-slate-200 dark:border-slate-800">
-                              <span className="font-bold text-slate-800 dark:text-slate-200 block">Slot {slot.no}</span>
+                              <span className="font-semibold text-slate-800 dark:text-slate-200 block">Slot {slot.no}</span>
                               <span className="text-[11px] text-slate-400 block">{slot.time}</span>
                             </td>
                             {WEEKDAYS.map((day) => {
@@ -253,16 +251,16 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                                         return (
                                           <div
                                             key={idx}
-                                            className={`p-2 rounded-xl border text-left shadow-xs transition-all ${
+                                            className={`p-2 rounded-md border text-left transition-colors ${
                                               isLab
                                                 ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-100'
                                                 : 'bg-primary-50 dark:bg-primary-950/40 border-primary-200 dark:border-primary-800 text-primary-900 dark:text-primary-100'
                                             }`}
                                           >
                                             <div className="flex items-center justify-between mb-1">
-                                              <span className="font-bold text-xs">{m.course_code}</span>
+                                              <span className="font-semibold text-xs">{m.course_code}</span>
                                               {isLab && (
-                                                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 font-bold">
+                                                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 font-semibold">
                                                   3h Lab
                                                 </span>
                                               )}
@@ -301,7 +299,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                           {isLunchAfter && (
                             <tr className="bg-amber-50/70 dark:bg-amber-950/30 border-y border-amber-200 dark:border-amber-900/60">
                               <td colSpan={6} className="py-2 px-4 text-center text-xs font-semibold text-amber-800 dark:text-amber-300">
-                                🍽️ University Lunch Break (12:30 – 14:00) — No classes scheduled
+                                University Lunch Break (12:30 – 14:00) — No classes scheduled
                               </td>
                             </tr>
                           )}
@@ -324,7 +322,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
           )}
 
           {activeTab === 'list' && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase font-semibold">
                   <tr>
@@ -343,7 +341,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                     return (
                       <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                         <td className="p-3">
-                          <span className="font-bold text-primary-600 dark:text-primary-400">{m.course_code}</span>
+                          <span className="font-semibold text-primary-600 dark:text-primary-400">{m.course_code}</span>
                           <span className="block text-[11px] text-slate-500">{m.course_name}</span>
                         </td>
                         <td className="p-3">{m.cohort_name}</td>
@@ -371,7 +369,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-500">
             {replaceExisting ? (
               <span className="text-amber-600 dark:text-amber-400 font-medium">
-                ⚠️ Committing will replace current meetings in selected branches.
+                Committing will replace current meetings in selected branches.
               </span>
             ) : (
               <span>Committing will append proposed meetings to current schedule version.</span>
@@ -382,7 +380,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
             <button
               onClick={() => onDiscard(proposal.id)}
               disabled={isDiscarding || isCommitting}
-              className="px-4 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
               {isDiscarding ? 'Discarding...' : 'Discard Proposal'}
@@ -391,7 +389,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
             <button
               onClick={() => setShowCommitConfirm(true)}
               disabled={isCommitting || isDiscarding}
-              className="px-6 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all disabled:opacity-50"
+              className="px-6 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
             >
               <Check className="w-4 h-4 text-white" />
               {isCommitting ? 'Committing...' : 'Commit Proposal to Live Timetable'}
@@ -401,12 +399,12 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
 
         {/* Confirmation Modal */}
         {showCommitConfirm && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 max-w-md w-full shadow-2xl text-center space-y-4">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-800 max-w-md w-full text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center mx-auto">
                 <Check className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Confirm Timetable Commit
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -421,7 +419,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowCommitConfirm(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md"
                 >
                   Cancel
                 </button>
@@ -431,7 +429,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                     setShowCommitConfirm(false);
                     onCommit(proposal.id);
                   }}
-                  className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-500/20"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md "
                 >
                   Confirm & Commit
                 </button>

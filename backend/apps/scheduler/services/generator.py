@@ -234,6 +234,12 @@ class TimetableGenerator:
             # Find compatible candidate rooms
             if course.course_type == Course.CourseType.LAB:
                 candidate_rooms = [r for r in lab_rooms if r.capacity >= required_capacity]
+                # Honour the course's preferred lab type (e.g. computer vs electronics lab)
+                # when at least one such room fits.
+                preferred = getattr(getattr(course, 'delivery_rule', None), 'preferred_room_type', '')
+                preferred_rooms = [r for r in candidate_rooms if preferred and r.room_type == preferred]
+                if preferred_rooms:
+                    candidate_rooms = preferred_rooms
             else:
                 candidate_rooms = [r for r in theory_rooms if r.capacity >= required_capacity]
 

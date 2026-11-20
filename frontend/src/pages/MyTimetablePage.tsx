@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Calendar,
   Printer,
-  Sparkles,
+  CalendarCog,
   BookOpen,
   DoorOpen,
   Coffee,
@@ -15,6 +15,7 @@ import {
 import { timetableService } from '../services/timetable';
 import { academicsService } from '../services/academics';
 import { ScheduledMeeting } from '../types';
+import { pickCurrentTerm } from '../utils/terms';
 
 const WEEKDAYS = [
   { id: 1, name: 'Monday', short: 'Mon' },
@@ -44,10 +45,11 @@ export const MyTimetablePage: React.FC = () => {
     queryFn: () => academicsService.getAcademicTerms(),
   });
 
-  const activeTerm = terms.find((t) => t.id === selectedTermId) || terms[0];
+  const activeTerm = terms.find((t) => t.id === selectedTermId) || pickCurrentTerm(terms);
 
   const { data: timetable, isLoading } = useQuery({
     queryKey: ['my-timetable', activeTerm?.id, selectedVersionId],
+    placeholderData: keepPreviousData,
     queryFn: () => timetableService.getMyTimetable(activeTerm?.id, selectedVersionId),
     enabled: !!activeTerm,
   });
@@ -73,11 +75,11 @@ export const MyTimetablePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 mb-2">
+            <CalendarCog className="w-3.5 h-3.5" />
             <span>Faculty Personal Schedule</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Weekly Timetable</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">My Weekly Timetable</h1>
           <p className="text-sm text-slate-500">
             Official published timetable for {timetable?.professor_name || 'Faculty Member'}.
           </p>
@@ -115,7 +117,7 @@ export const MyTimetablePage: React.FC = () => {
 
           <button
             onClick={handlePrint}
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition-colors flex items-center gap-2"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center gap-2"
           >
             <Printer className="w-4 h-4" />
             <span>Print Timetable</span>
@@ -125,21 +127,21 @@ export const MyTimetablePage: React.FC = () => {
 
       {/* Print Only Header */}
       <div className="hidden print:block text-center border-b pb-4 mb-4">
-        <h1 className="text-xl font-bold">{timetable?.professor_name} — Teaching Timetable</h1>
+        <h1 className="text-xl font-semibold">{timetable?.professor_name} — Teaching Timetable</h1>
         <p className="text-sm text-slate-600">
           {activeTerm?.name} • Published Master Timetable • Prepared by: {timetable?.created_by || 'Super Administrator'}
         </p>
       </div>
 
       {/* Status & Summary Bar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4 print:border-none print:p-0">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 print:border-none print:p-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950 flex items-center justify-center text-primary-600">
+          <div className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
                 {timetable?.professor_name || 'Loading Professor...'}
               </h2>
               {timetable?.created_by && (
@@ -156,7 +158,7 @@ export const MyTimetablePage: React.FC = () => {
 
         {timetable?.status && (
           <span
-            className={`px-3 py-1 rounded-full text-xs font-bold ${
+            className={`px-3 py-1 rounded text-xs font-semibold ${
               timetable.status === 'PUBLISHED'
                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                 : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
@@ -168,10 +170,10 @@ export const MyTimetablePage: React.FC = () => {
       </div>
 
       {/* Weekly Grid */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm overflow-x-auto print:border-none print:p-0">
-        <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 text-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 overflow-x-auto print:border-none print:p-0">
+        <table className="w-full min-w-[720px] table-fixed border-collapse border border-slate-200 dark:border-slate-800 text-xs">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-bold">
+            <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-semibold">
               <th className="p-3 border border-slate-200 dark:border-slate-800 w-32 text-left">Time Slot</th>
               {WEEKDAYS.map((day) => (
                 <th key={day.id} className="p-3 border border-slate-200 dark:border-slate-800 text-center">
@@ -187,7 +189,7 @@ export const MyTimetablePage: React.FC = () => {
                 <React.Fragment key={slot.no}>
                   <tr>
                     <td className="p-2.5 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 font-mono text-[11px]">
-                      <div className="font-bold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
+                      <div className="font-semibold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
                       <div className="text-[10px] text-slate-400">{slot.time}</div>
                     </td>
 
@@ -211,16 +213,16 @@ export const MyTimetablePage: React.FC = () => {
                         >
                           {meeting ? (
                             <div
-                              className={`p-2 rounded-lg border text-[11px] shadow-sm h-full flex flex-col justify-between ${
+                              className={`p-2 rounded-lg border text-[11px] h-full flex flex-col justify-between ${
                                 meeting.course_type === 'LAB'
                                   ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200'
                                   : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200'
                               }`}
                             >
                               <div>
-                                <div className="flex items-center justify-between font-bold">
-                                  <span className="font-mono">{meeting.course_code}</span>
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 dark:bg-black/30">
+                                <div className="flex items-center justify-between gap-1 min-w-0 font-semibold">
+                                  <span className="font-mono flex-shrink-0">{meeting.course_code}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap truncate min-w-0 bg-white/70 dark:bg-black/30">
                                     {meeting.course_type}
                                   </span>
                                 </div>
@@ -228,7 +230,7 @@ export const MyTimetablePage: React.FC = () => {
                               </div>
 
                               <div className="pt-1.5 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[10px]">
-                                <span className="font-bold">
+                                <span className="font-semibold">
                                   {meeting.building_code} - Rm {meeting.room_no}
                                 </span>
                                 <span className="font-mono opacity-80">
@@ -248,11 +250,11 @@ export const MyTimetablePage: React.FC = () => {
 
                   {isLunchBreakSlot && (
                     <tr className="bg-amber-50/70 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-center text-[11px] font-semibold print:bg-slate-100">
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1 font-mono">
-                        <Coffee className="w-3.5 h-3.5" /> 12:30–14:00
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono whitespace-nowrap">
+                        <Coffee className="w-3.5 h-3.5 inline-block align-[-2px] mr-1" />12:30–14:00
                       </td>
                       <td colSpan={5} className="p-2 border border-slate-200 dark:border-slate-800">
-                        ☕ University Lunch Break
+                        University Lunch Break
                       </td>
                     </tr>
                   )}
@@ -265,14 +267,14 @@ export const MyTimetablePage: React.FC = () => {
 
       {/* Holidays Notice */}
       {timetable?.holidays && timetable.holidays.length > 0 && (
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 print:hidden">
-          <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+        <div className="p-4 rounded-md bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 print:hidden">
+          <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
             Academic Holidays for {activeTerm?.name}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             {timetable.holidays.map((h) => (
               <div key={h.id} className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="font-bold block text-primary-600">{h.date}</span>
+                <span className="font-semibold block text-primary-600">{h.date}</span>
                 <span className="text-slate-600 dark:text-slate-300">{h.name}</span>
               </div>
             ))}

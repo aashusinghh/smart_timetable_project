@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   GitBranch,
   Calendar,
   Coffee,
   Printer,
-  Sparkles,
+  CalendarCog,
   Users,
   BookOpen,
 } from 'lucide-react';
 import { timetableService } from '../services/timetable';
 import { academicsService } from '../services/academics';
 import { ScheduledMeeting } from '../types';
+import { pickCurrentTerm } from '../utils/terms';
 
 const WEEKDAYS = [
   { id: 1, name: 'Monday', short: 'Mon' },
@@ -55,7 +56,7 @@ export const BranchTimetablePage: React.FC = () => {
     queryFn: () => academicsService.getAcademicTerms(),
   });
 
-  const activeTerm = terms.find((t) => t.id === selectedTermId) || terms[0];
+  const activeTerm = terms.find((t) => t.id === selectedTermId) || pickCurrentTerm(terms);
 
   const maxSemesters = activeBranch?.max_semesters || 8;
   const allSemesters = React.useMemo(() => Array.from({ length: maxSemesters }, (_, i) => i + 1), [maxSemesters]);
@@ -75,6 +76,7 @@ export const BranchTimetablePage: React.FC = () => {
 
   const { data: branchTimetable, isLoading } = useQuery({
     queryKey: ['branch-timetable', activeBranch?.id, activeTerm?.id, selectedSemester],
+    placeholderData: keepPreviousData,
     queryFn: () =>
       activeBranch
         ? timetableService.getBranchTimetable(activeBranch.id, {
@@ -102,11 +104,11 @@ export const BranchTimetablePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 mb-2">
             <GitBranch className="w-3.5 h-3.5" />
             <span>Branch Public Schedule Viewer</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
             {activeBranch ? `${activeBranch.name} (${activeBranch.code})` : 'Branch Timetable'}
           </h1>
           <p className="text-sm text-slate-500">
@@ -130,7 +132,7 @@ export const BranchTimetablePage: React.FC = () => {
           <select
             value={activeBranch?.id || ''}
             onChange={(e) => setSelectedBranchId(Number(e.target.value))}
-            className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold"
+            className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold"
           >
             {branches.map((b) => (
               <option key={b.id} value={b.id}>
@@ -162,10 +164,10 @@ export const BranchTimetablePage: React.FC = () => {
       </div>
 
       {/* Grid */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm overflow-x-auto print:border-none print:p-0">
-        <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 text-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 overflow-x-auto print:border-none print:p-0">
+        <table className="w-full min-w-[720px] table-fixed border-collapse border border-slate-200 dark:border-slate-800 text-xs">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-bold">
+            <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-semibold">
               <th className="p-3 border border-slate-200 dark:border-slate-800 w-32 text-left">Time Slot</th>
               {WEEKDAYS.map((day) => (
                 <th key={day.id} className="p-3 border border-slate-200 dark:border-slate-800 text-center">
@@ -181,7 +183,7 @@ export const BranchTimetablePage: React.FC = () => {
                 <React.Fragment key={slot.no}>
                   <tr>
                     <td className="p-2.5 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 font-mono text-[11px]">
-                      <div className="font-bold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
+                      <div className="font-semibold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
                       <div className="text-[10px] text-slate-400">{slot.time}</div>
                     </td>
 
@@ -194,16 +196,16 @@ export const BranchTimetablePage: React.FC = () => {
                         >
                           {meeting ? (
                             <div
-                              className={`p-2 rounded-lg border text-[11px] shadow-sm h-full flex flex-col justify-between ${
+                              className={`p-2 rounded-lg border text-[11px] h-full flex flex-col justify-between ${
                                 meeting.course_type === 'LAB'
                                   ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200'
                                   : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200'
                               }`}
                             >
                               <div>
-                                <div className="flex items-center justify-between font-bold">
-                                  <span className="font-mono">{meeting.course_code}</span>
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 dark:bg-black/30">
+                                <div className="flex items-center justify-between gap-1 min-w-0 font-semibold">
+                                  <span className="font-mono flex-shrink-0">{meeting.course_code}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap truncate min-w-0 bg-white/70 dark:bg-black/30">
                                     Room {meeting.room_no}
                                   </span>
                                 </div>
@@ -212,8 +214,8 @@ export const BranchTimetablePage: React.FC = () => {
 
                               <div className="pt-1.5 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[10px] opacity-80">
                                 <span className="truncate">{meeting.professor_name}</span>
-                                {meeting.group_codes && meeting.group_codes.length > 0 && (
-                                  <span className="font-mono font-bold">[{meeting.group_codes.join(', ')}]</span>
+                                {meeting.group_codes && meeting.group_codes.length > 0 && !meeting.group_codes.includes('ALL') && (
+                                  <span className="font-mono font-semibold">[{meeting.group_codes.join(', ')}]</span>
                                 )}
                               </div>
                             </div>
@@ -225,11 +227,11 @@ export const BranchTimetablePage: React.FC = () => {
 
                   {isLunchBreakSlot && (
                     <tr className="bg-amber-50/70 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-center text-[11px] font-semibold">
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1 font-mono">
-                        <Coffee className="w-3.5 h-3.5" /> 12:30–14:00
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono whitespace-nowrap">
+                        <Coffee className="w-3.5 h-3.5 inline-block align-[-2px] mr-1" />12:30–14:00
                       </td>
                       <td colSpan={5} className="p-2 border border-slate-200 dark:border-slate-800">
-                        ☕ University Lunch Break
+                        University Lunch Break
                       </td>
                     </tr>
                   )}

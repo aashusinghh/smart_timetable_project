@@ -8,7 +8,7 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
-  Sparkles,
+  CalendarCog,
   Layers,
   X,
 } from 'lucide-react';
@@ -113,11 +113,11 @@ export const TeachingAssignmentsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
             <UserCheck className="w-3.5 h-3.5" />
             <span>Faculty Mappings</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Teaching Assignments</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Teaching Assignments</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Map faculty professors to cohort course offerings. The timetable optimizer will use these fixed mappings to schedule rooms and time slots.
           </p>
@@ -127,16 +127,16 @@ export const TeachingAssignmentsPage: React.FC = () => {
           <button
             onClick={() => populateMutation.mutate(activeCohort.id)}
             disabled={populateMutation.isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
-            <Sparkles className="w-4 h-4" />
+            <CalendarCog className="w-4 h-4" />
             <span>Populate from Curriculum</span>
           </button>
         )}
       </div>
 
       {/* Cohort Selector */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
         <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Select Cohort:</label>
         <select
           value={currentCohortId || ''}
@@ -156,7 +156,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
         {isLoading ? (
           <div className="p-8 text-center text-xs text-slate-500">Loading course offerings...</div>
         ) : offerings.length === 0 ? (
-          <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 space-y-3">
             <BookOpen className="w-8 h-8 text-slate-400 mx-auto" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No course offerings for this cohort yet</p>
             <p className="text-xs text-slate-500">Click "Populate from Curriculum" above to auto-generate offerings from the branch semester syllabus.</p>
@@ -168,13 +168,13 @@ export const TeachingAssignmentsPage: React.FC = () => {
             return (
               <div
                 key={offering.id}
-                className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4"
+                className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-4"
               >
                 {/* Offering Title */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <div className="flex items-center gap-3">
                     <span
-                      className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                      className={`px-2.5 py-0.5 rounded text-[11px] font-semibold ${
                         isLab
                           ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
                           : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
@@ -183,7 +183,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                       {offering.course_type}
                     </span>
                     <div>
-                      <h3 className="font-mono font-bold text-sm text-slate-900 dark:text-white">
+                      <h3 className="font-mono font-semibold text-sm text-slate-900 dark:text-white">
                         {offering.course_code} — {offering.course_name}
                       </h3>
                       <span className="text-xs text-slate-500">
@@ -220,11 +220,11 @@ export const TeachingAssignmentsPage: React.FC = () => {
                         className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 flex items-center justify-center font-bold">
+                          <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 flex items-center justify-center font-semibold">
                             {asgn.professor_name?.charAt(0) || 'P'}
                           </div>
                           <div>
-                            <span className="font-bold text-slate-900 dark:text-white">
+                            <span className="font-semibold text-slate-900 dark:text-white">
                               {asgn.professor_name}
                             </span>{' '}
                             <span className="text-slate-500 text-[11px]">({asgn.professor_email})</span>
@@ -259,11 +259,11 @@ export const TeachingAssignmentsPage: React.FC = () => {
 
       {/* Assign Professor Modal */}
       {assigningOffering && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   Assign Faculty Member
                 </h2>
                 <p className="text-xs text-slate-500">{assigningOffering.course_code} — {assigningOffering.course_name}</p>

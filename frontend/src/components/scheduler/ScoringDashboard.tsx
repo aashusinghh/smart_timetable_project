@@ -6,7 +6,7 @@ import {
   Scale,
   Clock,
   Calendar,
-  Sparkles,
+  CalendarCog,
   AlertTriangle,
   CheckCircle,
 } from 'lucide-react';
@@ -68,7 +68,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
       title: 'Slot Preferences & Distribution',
       description: 'Prioritizes prime mid-day slots (slots 2..7)',
       score: breakdown?.slot_preference_score ?? 100,
-      icon: Sparkles,
+      icon: CalendarCog,
     },
     {
       title: 'Multi-Meeting Day Spread',
@@ -81,47 +81,46 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Score Banner */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-white dark:bg-slate-900 rounded-lg p-6 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800">
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-              <Award className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-amber-600">
+              <Award className="w-8 h-8" strokeWidth={1.5} />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <span className="text-3xl font-extrabold tracking-tight">{overallScore.toFixed(1)}</span>
+                <span className="text-3xl font-semibold tracking-tight">{overallScore.toFixed(1)}</span>
                 <span className="text-slate-400 font-semibold text-lg">/ 100</span>
-                <span className={`text-xs px-2.5 py-0.5 rounded-full border font-bold ${badge.color}`}>
+                <span className={`text-xs px-2.5 py-0.5 rounded border font-semibold ${badge.color}`}>
                   {badge.label}
                 </span>
               </div>
-              <h4 className="text-sm font-medium text-slate-300 mt-1">
+              <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
                 Authoritative Schedule Quality Score
               </h4>
             </div>
           </div>
 
           {metrics && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-md p-3 text-center">
               <div>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Scheduled</p>
-                <p className="text-lg font-bold text-emerald-400">{metrics.total_scheduled_meetings}</p>
+                <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Scheduled</p>
+                <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{metrics.total_scheduled_meetings}</p>
               </div>
               <div>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Unscheduled</p>
-                <p className={`text-lg font-bold ${metrics.total_unscheduled_meetings > 0 ? 'text-red-400' : 'text-slate-200'}`}>
+                <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Unscheduled</p>
+                <p className={`text-lg font-semibold ${metrics.total_unscheduled_meetings > 0 ? 'text-red-600 dark:text-red-400': 'text-slate-700 dark:text-slate-200'}`}>
                   {metrics.total_unscheduled_meetings}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Student Gaps</p>
-                <p className="text-lg font-bold text-amber-300">{metrics.student_gap_hours}h</p>
+                <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Student Gaps</p>
+                <p className="text-lg font-semibold text-amber-700 dark:text-amber-300">{metrics.student_gap_hours}h</p>
               </div>
               <div>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Prof Gaps</p>
-                <p className="text-lg font-bold text-blue-300">{metrics.professor_gap_hours}h</p>
+                <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Prof Gaps</p>
+                <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">{metrics.professor_gap_hours}h</p>
               </div>
             </div>
           )}
@@ -130,7 +129,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
 
       {/* Soft Constraint Score Breakdown */}
       <div>
-        <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
           <Scale className="w-4 h-4 text-primary-500" />
           Soft Constraint Breakdown
         </h4>
@@ -150,7 +149,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
             return (
               <div
                 key={idx}
-                className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm"
+                className="p-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 "
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2.5">
@@ -163,7 +162,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
                       {item.score.toFixed(0)}%
                     </span>
                     {item.metricText && (
@@ -175,7 +174,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
                 {/* Progress bar */}
                 <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+                    className={`h-full rounded-full transition-[width] duration-500 ${progressColor}`}
                     style={{ width: `${Math.max(4, Math.min(100, item.score))}%` }}
                   />
                 </div>
@@ -187,7 +186,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
 
       {/* Unscheduled Offerings Diagnosis */}
       {unscheduledOfferings.length > 0 && (
-        <div className="border border-red-200 dark:border-red-900/60 rounded-2xl p-5 bg-red-50/40 dark:bg-red-950/20">
+        <div className="border border-red-200 dark:border-red-900/60 rounded-lg p-5 bg-red-50/40 dark:bg-red-950/20">
           <div className="flex items-center gap-2.5 text-red-700 dark:text-red-400 mb-3 font-semibold text-sm">
             <AlertTriangle className="w-4 h-4" />
             Unscheduled Offerings ({unscheduledOfferings.length})
@@ -205,7 +204,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
               <tbody className="divide-y divide-red-200/50 dark:divide-red-900/30 text-slate-700 dark:text-slate-300">
                 {unscheduledOfferings.map((u, i) => (
                   <tr key={i}>
-                    <td className="p-2.5 font-bold">{u.course_code || '—'} {u.course_name ? `(${u.course_name})` : ''}</td>
+                    <td className="p-2.5 font-semibold">{u.course_code || '—'} {u.course_name ? `(${u.course_name})` : ''}</td>
                     <td className="p-2.5">{u.cohort || '—'}</td>
                     <td className="p-2.5">{u.professor || '—'}</td>
                     <td className="p-2.5 text-red-600 dark:text-red-400 font-medium">{u.reason}</td>

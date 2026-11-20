@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   Calendar,
   Clock,
@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
+  CalendarCog,
   DoorOpen,
   UserCheck,
   Coffee,
@@ -55,6 +55,7 @@ import {
   Room,
   AutoScheduleProposal,
 } from '../types';
+import { pickCurrentTerm } from '../utils/terms';
 
 const WEEKDAYS = [
   { id: 1, name: 'Monday', short: 'Mon' },
@@ -157,7 +158,7 @@ export const TimetablePlannerPage: React.FC = () => {
     queryFn: () => academicsService.getAcademicTerms(),
   });
 
-  const activeTerm = terms.find((t) => t.id === selectedTermId) || terms[0];
+  const activeTerm = terms.find((t) => t.id === selectedTermId) || pickCurrentTerm(terms);
 
   // Sync termCycle with activeTerm.term_type when activeTerm loads or changes
   useEffect(() => {
@@ -239,7 +240,7 @@ export const TimetablePlannerPage: React.FC = () => {
   }, [activeTerm?.id, versions.length, isVersionsLoading, isAutoCreatingVersion, refetchVersions]);
 
   // Cohorts Query for this term
-  const { data: allCohorts = [], refetch: refetchCohorts } = useQuery({
+  const { data: allCohorts = [], refetch: refetchCohorts, isSuccess: cohortsLoaded } = useQuery({
     queryKey: ['cohorts', activeTerm?.id],
     queryFn: () => academicsService.getCohorts({ term: activeTerm?.id }),
     enabled: !!activeTerm,
@@ -267,6 +268,7 @@ export const TimetablePlannerPage: React.FC = () => {
       activeBranch?.id &&
       activeTerm?.id &&
       activeSemester !== undefined &&
+      cohortsLoaded &&
       matchingCohorts.length === 0 &&
       !isAutoCreatingCohort
     ) {
@@ -295,6 +297,7 @@ export const TimetablePlannerPage: React.FC = () => {
     activeTerm?.id,
     activeSemester,
     matchingCohorts.length,
+    cohortsLoaded,
     isAutoCreatingCohort,
     refetchCohorts,
   ]);
@@ -347,6 +350,7 @@ export const TimetablePlannerPage: React.FC = () => {
   // Timetable Grid Query
   const { data: gridData, refetch: refetchGrid } = useQuery({
     queryKey: ['timetable-grid', activeVersion?.id, activeCohort?.id],
+    placeholderData: keepPreviousData,
     queryFn: () =>
       activeVersion
         ? timetableService.getGrid(activeVersion.id, { cohort_id: activeCohort?.id })
@@ -361,8 +365,9 @@ export const TimetablePlannerPage: React.FC = () => {
   });
 
   // Course Offerings Query for cohort
-  const { data: offerings = [] } = useQuery({
+  const { data: offerings = [], isSuccess: offeringsLoaded, isPlaceholderData: offeringsArePrevious } = useQuery({
     queryKey: ['course-offerings', activeCohort?.id],
+    placeholderData: keepPreviousData,
     queryFn: () => academicsService.getCourseOfferings({ cohort: activeCohort?.id }),
     enabled: !!activeCohort,
   });
@@ -388,6 +393,7 @@ export const TimetablePlannerPage: React.FC = () => {
   // Teaching Assignments Query for cohort
   const { data: assignments = [] } = useQuery({
     queryKey: ['teaching-assignments', activeCohort?.id],
+    placeholderData: keepPreviousData,
     queryFn: () => academicsService.getTeachingAssignments({ cohort: activeCohort?.id }),
     enabled: !!activeCohort,
   });
@@ -395,6 +401,7 @@ export const TimetablePlannerPage: React.FC = () => {
   // Schedule Quality Score Query
   const { data: qualityScoreData, refetch: refetchScore } = useQuery({
     queryKey: ['timetable-score', activeVersion?.id],
+    placeholderData: keepPreviousData,
     queryFn: () => (activeVersion ? schedulerService.getTimetableScore(activeVersion.id) : null),
     enabled: !!activeVersion,
   });
@@ -433,7 +440,7 @@ export const TimetablePlannerPage: React.FC = () => {
   // Auto-populate offerings from curriculum & semester courses when cohort has no offerings yet
   const autoPopulatedCohortRef = React.useRef<Set<number>>(new Set());
   useEffect(() => {
-    if (activeCohort?.id && offerings.length === 0 && !autoPopulatedCohortRef.current.has(activeCohort.id)) {
+    if (activeCohort?.id && offeringsLoaded && !offeringsArePrevious && offerings.length === 0 && !autoPopulatedCohortRef.current.has(activeCohort.id)) {
       autoPopulatedCohortRef.current.add(activeCohort.id);
       academicsService.populateFromCurriculum(activeCohort.id).then(() => {
         queryClient.invalidateQueries({ queryKey: ['course-offerings', activeCohort.id] });
@@ -441,7 +448,7 @@ export const TimetablePlannerPage: React.FC = () => {
         console.warn('Auto-populate from curriculum skipped:', err);
       });
     }
-  }, [activeCohort?.id, offerings.length, queryClient]);
+  }, [activeCohort?.id, offeringsLoaded, offeringsArePrevious, offerings.length, queryClient]);
 
   const createCohortMutation = useMutation({
     mutationFn: (data: Partial<Cohort>) => academicsService.createCohort(data),
@@ -499,7 +506,7 @@ export const TimetablePlannerPage: React.FC = () => {
   const { isConnected } = useTimetableSocket(activeVersion?.id, {
     onEvent: (event) => {
       if (event.type === 'schedule.published') {
-        setSuccessToast(`📢 Schedule has been officially PUBLISHED!`);
+        setSuccessToast(`Schedule has been officially PUBLISHED!`);
         setTimeout(() => setSuccessToast(null), 5000);
       }
     },
@@ -534,7 +541,7 @@ export const TimetablePlannerPage: React.FC = () => {
     mutationFn: (id: number) => timetableService.publishSchedule(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable-versions'] });
-      setSuccessToast('🎉 Timetable officially PUBLISHED! Clashes resolved.');
+      setSuccessToast('Timetable officially PUBLISHED! Clashes resolved.');
       setTimeout(() => setSuccessToast(null), 4000);
     },
     onError: (err: any) => {
@@ -582,7 +589,7 @@ export const TimetablePlannerPage: React.FC = () => {
       setSelectedProposal(null);
       refetchGrid();
       refetchScore();
-      setSuccessToast('✨ AI Schedule successfully committed to timetable!');
+      setSuccessToast('AI Schedule successfully committed to timetable!');
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err: any) {
       setErrorMessage(extractConflictMessage(err));
@@ -781,21 +788,21 @@ export const TimetablePlannerPage: React.FC = () => {
       {/* Floating Notifications Overlay (Fixed to top-right to prevent grid layout shifting & flickering) */}
       <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
         {successToast && (
-          <div className="pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow-xl border border-emerald-500 transition-all duration-200">
+          <div className="pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-md bg-emerald-600 text-white text-xs font-semibold border border-emerald-500 transition-colors duration-200">
             <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
             <span>{successToast}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="pointer-events-auto bg-rose-50 dark:bg-rose-950/95 border-2 border-rose-500/80 dark:border-rose-600 rounded-2xl p-4 shadow-2xl backdrop-blur-sm transition-all duration-200">
+          <div className="pointer-events-auto bg-rose-50 dark:bg-rose-950/95 border-2 border-rose-500/80 dark:border-rose-600 rounded-lg p-4 transition-colors duration-200">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex-shrink-0 mt-0.5 shadow-sm">
+                <div className="p-2 rounded-md bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex-shrink-0 mt-0.5">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <div className="text-xs">
-                  <h4 className="font-bold text-rose-900 dark:text-rose-100 text-sm">
+                  <h4 className="font-semibold text-rose-900 dark:text-rose-100 text-sm">
                     Placement Conflict
                   </h4>
                   <p className="mt-1 text-rose-800 dark:text-rose-200 font-medium leading-relaxed">
@@ -818,11 +825,11 @@ export const TimetablePlannerPage: React.FC = () => {
       {/* Top Header & Overview */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+            <CalendarCog className="w-3.5 h-3.5 text-amber-500" />
             <span>University Timetable Planner with Collision Prevention</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
             Timetable Planner
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -835,7 +842,7 @@ export const TimetablePlannerPage: React.FC = () => {
           {/* Quality Score Badge */}
           {qualityScoreData && (
             <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 "
               title="Schedule Quality Score"
             >
               <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -845,12 +852,12 @@ export const TimetablePlannerPage: React.FC = () => {
 
           {/* WebSocket Status Indicator */}
           {isConnected ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Live Sync</span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
               <span className="w-2 h-2 rounded-full bg-slate-400"></span>
               <span>Connecting...</span>
             </div>
@@ -860,10 +867,10 @@ export const TimetablePlannerPage: React.FC = () => {
           {isAuthorizedToAutoSchedule && activeVersion?.status === 'DRAFT' && (
             <button
               onClick={() => setIsAutoGenerateModalOpen(true)}
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-700 hover:from-primary-700 hover:to-indigo-700 text-white shadow-md shadow-primary-500/25 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center gap-1.5"
               title="Smart automatic timetable generator with Google OR-Tools"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <CalendarCog className="w-4 h-4 text-amber-300" />
               <span>Auto-Generate</span>
             </button>
           )}
@@ -880,7 +887,7 @@ export const TimetablePlannerPage: React.FC = () => {
                   submitReviewMutation.mutate(activeVersion.id);
                 }
               }}
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Submit for Review</span>
@@ -906,7 +913,7 @@ export const TimetablePlannerPage: React.FC = () => {
                     publishMutation.mutate(activeVersion.id);
                   }
                 }}
-                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-1.5"
               >
                 <ShieldCheck className="w-4 h-4" />
                 <span>Approve & Publish</span>
@@ -915,7 +922,7 @@ export const TimetablePlannerPage: React.FC = () => {
           )}
 
           {activeVersion?.status === 'PUBLISHED' && (
-            <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
+            <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4" />
               <span>PUBLISHED (Locked)</span>
             </span>
@@ -925,7 +932,7 @@ export const TimetablePlannerPage: React.FC = () => {
 
       {/* Lock Notice Banner */}
       {isLocked && (
-        <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+        <div className="p-3.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
           <span>
             {activeVersion?.status === 'PUBLISHED'
@@ -938,13 +945,13 @@ export const TimetablePlannerPage: React.FC = () => {
       {/* ============================================================== */}
       {/* Top Academic Selection Pipeline (Department -> Course -> Semester -> Room) */}
       {/* ============================================================== */}
-      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      <div className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 text-xs font-semibold">
               1
             </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
               University Academic Pathway & Target Room
             </span>
           </div>
@@ -956,7 +963,7 @@ export const TimetablePlannerPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* 1. Department */}
           <div>
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="flex items-center gap-1.5 h-5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               <Building2 className="w-3.5 h-3.5 text-primary-600" />
               <span>Department</span>
             </label>
@@ -971,7 +978,7 @@ export const TimetablePlannerPage: React.FC = () => {
                 }
                 setSelectedCohortId(undefined);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-1 focus:ring-primary-500 focus:outline-none"
             >
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -983,7 +990,7 @@ export const TimetablePlannerPage: React.FC = () => {
 
           {/* 2. Course / Degree / Branch */}
           <div>
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="flex items-center gap-1.5 h-5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
               <span>Course / Degree</span>
             </label>
@@ -995,7 +1002,7 @@ export const TimetablePlannerPage: React.FC = () => {
                 setSelectedCohortId(undefined);
               }}
               disabled={departmentBranches.length === 0}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-2 focus:ring-primary-500 focus:outline-none disabled:opacity-50"
+              className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-1 focus:ring-primary-500 focus:outline-none disabled:opacity-50"
             >
               {departmentBranches.length === 0 ? (
                 <option value="">No courses in this department</option>
@@ -1011,19 +1018,19 @@ export const TimetablePlannerPage: React.FC = () => {
 
           {/* 3. Semester */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between h-5 mb-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
                 <Layers className="w-3.5 h-3.5 text-amber-600" />
                 <span>Semester</span>
               </label>
               {/* Odd / Even semester cycle selection */}
-              <div className="inline-flex rounded-lg p-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold border border-slate-200 dark:border-slate-700">
+              <div className="inline-flex h-5 items-center rounded-md p-px bg-slate-100 dark:bg-slate-800 text-[10px] leading-none font-semibold border border-slate-200 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => handleCycleChange('ODD')}
-                  className={`px-2 py-0.5 rounded-md transition-all ${
+                  className={`px-2 py-[3px] rounded transition-colors ${
                     termCycle === 'ODD'
-                      ? 'bg-amber-500 text-white shadow-sm'
+                      ? 'bg-amber-500 text-white '
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                   title="Show Odd Semesters (1, 3, 5, 7...)"
@@ -1033,9 +1040,9 @@ export const TimetablePlannerPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCycleChange('EVEN')}
-                  className={`px-2 py-0.5 rounded-md transition-all ${
+                  className={`px-2 py-[3px] rounded transition-colors ${
                     termCycle === 'EVEN'
-                      ? 'bg-amber-500 text-white shadow-sm'
+                      ? 'bg-amber-500 text-white '
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                   title="Show Even Semesters (2, 4, 6, 8...)"
@@ -1050,7 +1057,7 @@ export const TimetablePlannerPage: React.FC = () => {
                 setSelectedSemester(Number(e.target.value));
                 setSelectedCohortId(undefined);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold focus:ring-1 focus:ring-primary-500 focus:outline-none"
             >
               {semesterOptions.map((sem) => (
                 <option key={sem} value={sem}>
@@ -1062,19 +1069,19 @@ export const TimetablePlannerPage: React.FC = () => {
 
           {/* 4. Target Room Selector */}
           <div>
-            <label className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="flex items-center justify-between h-5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               <span className="flex items-center gap-1.5">
                 <DoorOpen className="w-3.5 h-3.5 text-purple-600" />
                 <span>Target Room</span>
                 {activeOffering && (
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                    className={`text-[10px] leading-none px-2 py-1 rounded font-semibold uppercase tracking-wider ${
                       activeOffering.course_type === 'LAB'
                         ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
                         : 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                     }`}
                   >
-                    {activeOffering.course_type === 'LAB' ? '🔬 Labs Only' : '📖 Classrooms Only'}
+                    {activeOffering.course_type === 'LAB'? 'Labs Only': 'Classrooms Only'}
                   </span>
                 )}
               </span>
@@ -1087,7 +1094,7 @@ export const TimetablePlannerPage: React.FC = () => {
             <select
               value={selectedRoomId || ''}
               onChange={(e) => setSelectedRoomId(Number(e.target.value))}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-purple-200 dark:border-purple-800/80 bg-purple-50/50 dark:bg-purple-950/30 font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none text-purple-950 dark:text-purple-200"
+              className="w-full px-3 py-2 text-xs rounded-md border border-purple-200 dark:border-purple-800/80 bg-purple-50/50 dark:bg-purple-950/30 font-semibold focus:ring-1 focus:ring-purple-500 focus:outline-none text-purple-950 dark:text-purple-200"
             >
               {filteredRooms.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -1095,17 +1102,19 @@ export const TimetablePlannerPage: React.FC = () => {
                 </option>
               ))}
             </select>
-            {activeOffering && (
-              <p className="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
-                <span>
+            <p className="text-[10px] text-slate-400 mt-1 h-4 leading-4 truncate">
+              {activeOffering ? (
+                <>
                   Showing {filteredRooms.length}{' '}
                   {activeOffering.course_type === 'LAB' ? 'lab' : 'theory'} room(s) for{' '}
                   <strong className="text-slate-600 dark:text-slate-300">
                     {activeOffering.course_code}
                   </strong>
-                </span>
-              </p>
-            )}
+                </>
+              ) : (
+                <>Showing all {filteredRooms.length} room(s)</>
+              )}
+            </p>
           </div>
         </div>
 
@@ -1136,7 +1145,7 @@ export const TimetablePlannerPage: React.FC = () => {
                 ))}
               </select>
               <span
-                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                   termCycle === 'ODD'
                     ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
                     : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
@@ -1150,7 +1159,7 @@ export const TimetablePlannerPage: React.FC = () => {
           {/* Active selection summary pill */}
           <div className="text-[11px] text-slate-500 font-medium flex items-center gap-2">
             <span>Viewing:</span>
-            <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-800 dark:text-slate-200">
+            <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 font-mono font-semibold text-slate-800 dark:text-slate-200">
               {activeBranch?.code} • Sem {activeSemester}
             </span>
           </div>
@@ -1162,69 +1171,75 @@ export const TimetablePlannerPage: React.FC = () => {
       {/* ============================================================== */}
       {/* Main Layout: Left Subjects Palette + Right Weekly Timetable Grid */}
       {/* ============================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
         {/* Left Column: Subjects for Selected Course & Semester */}
-        <div className="xl:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="min-w-0 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <BookOpen className="w-4 h-4 text-primary-600" />
-                <span>Subjects Palette</span>
+                <span className="whitespace-nowrap">Subjects</span>
               </h2>
               <p className="text-[11px] text-slate-500">
                 {activeBranch?.code} Sem {activeSemester}
               </p>
             </div>
-            <span className="text-xs font-mono font-bold text-slate-400">
-              {semesterOfferings.length} subjects
+            <span className="text-xs font-mono font-semibold text-slate-400 whitespace-nowrap">
+              {semesterOfferings.length} total
             </span>
           </div>
 
-          {/* Active Placement Indicator Card */}
-          {activeOffering && (
-            <div className="p-3.5 rounded-xl bg-primary-50 dark:bg-primary-950/60 border border-primary-300 dark:border-primary-800 text-xs space-y-1.5 shadow-sm">
+          {/* Active Placement Indicator Card: always rendered at a fixed height so
+              picking a subject never pushes the list (and the clicked card) down. */}
+          {activeOffering ? (
+            <div className="h-[164px] p-3.5 rounded-md bg-primary-50 dark:bg-primary-950/60 border border-primary-300 dark:border-primary-800 text-xs space-y-1.5 overflow-hidden">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-primary-900 dark:text-primary-200 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-primary-600 animate-ping"></span>
-                  Placing Subject:
+                <span className="font-semibold text-primary-900 dark:text-primary-200 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary-600"></span>
+                  Placing subject
                 </span>
                 <button
                   onClick={() => {
                     setActiveOffering(null);
                     setActiveAssignment(null);
                   }}
-                  className="text-primary-600 hover:text-primary-800 dark:text-primary-400 font-bold text-[11px]"
+                  className="text-primary-600 hover:text-primary-800 dark:text-primary-400 font-semibold text-[11px]"
                 >
                   Cancel
                 </button>
               </div>
-              <p className="font-mono font-bold text-slate-900 dark:text-white">
+              <p className="font-mono font-semibold text-slate-900 dark:text-white truncate">
                 {activeOffering.course_code} — {activeOffering.course_name}
               </p>
               <div className="text-[11px] text-slate-600 dark:text-slate-300 flex flex-col gap-0.5 pt-1">
-                <span>
+                <span className="truncate">
                   <strong>Faculty:</strong> {activeAssignment?.professor_name || 'Assigned Professor'}
                 </span>
-                <span>
+                <span className="truncate">
                   <strong>Target Room:</strong> Room {activeRoom?.room_no} ({activeRoom?.room_type_display})
                 </span>
-                <span>
+                <span className="truncate">
                   <strong>Pattern:</strong>{' '}
                   {activeOffering.course_type === 'LAB'
                     ? '2 × 3h Continuous Lab'
                     : `${activeOffering.course_credit || 3} × 1h Theory`}
                 </span>
               </div>
-              <p className="text-[10px] text-primary-700 dark:text-primary-300 font-semibold pt-1">
-                👉 Click an empty slot on the timetable to place this class.
+              <p className="text-[10px] text-primary-700 dark:text-primary-300 font-semibold pt-1 truncate">
+                Click an empty slot on the timetable to place this class.
               </p>
+            </div>
+          ) : (
+            <div className="h-[164px] p-3.5 rounded-md border border-dashed border-slate-300 dark:border-slate-700 text-xs flex flex-col justify-center gap-1 text-slate-500">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">No subject selected</span>
+              <span>Pick a subject below, then click an empty slot on the grid to place it.</span>
             </div>
           )}
 
           {/* Subjects List */}
           <div className="space-y-2.5 max-h-[620px] overflow-y-auto pr-1">
             {semesterOfferings.length === 0 ? (
-              <div className="text-center py-8 px-3 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="text-center py-8 px-3 bg-slate-50/50 dark:bg-slate-800/30 rounded-md border border-dashed border-slate-200 dark:border-slate-700 space-y-3">
                 <p className="text-xs text-slate-500 font-medium">
                   No course offerings found for {activeBranch?.code} Sem {activeSemester}.
                 </p>
@@ -1232,7 +1247,7 @@ export const TimetablePlannerPage: React.FC = () => {
                   <button
                     onClick={() => populateCurriculumMutation.mutate(activeCohort.id)}
                     disabled={populateCurriculumMutation.isPending}
-                    className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-sm inline-flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white inline-flex items-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Populate from Curriculum</span>
@@ -1252,9 +1267,9 @@ export const TimetablePlannerPage: React.FC = () => {
                   <div
                     key={offering.id}
                     onClick={() => selectOfferingForPlacement(offering)}
-                    className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-md border text-xs cursor-pointer transition-colors ${
                       isSelected
-                        ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/40 shadow-md ring-2 ring-primary-500/20'
+                        ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/40 ring-1 ring-inset ring-primary-500'
                         : isComplete
                         ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/20 opacity-70 hover:opacity-100'
                         : 'border-slate-200 dark:border-slate-800 hover:border-primary-400 bg-slate-50/40 dark:bg-slate-800/30'
@@ -1262,7 +1277,7 @@ export const TimetablePlannerPage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           isLab
                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                             : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
@@ -1271,15 +1286,15 @@ export const TimetablePlannerPage: React.FC = () => {
                         {offering.course_type}
                       </span>
                       <span
-                        className={`text-[10px] font-mono font-bold ${
+                        className={`text-[10px] font-mono font-semibold whitespace-nowrap ${
                           isComplete ? 'text-emerald-600' : 'text-slate-500'
                         }`}
                       >
-                        {scheduledCount} / {maxMeetings} Scheduled
+                        {scheduledCount}/{maxMeetings} placed
                       </span>
                     </div>
 
-                    <h3 className="font-bold font-mono text-slate-900 dark:text-white">
+                    <h3 className="font-semibold font-mono text-slate-900 dark:text-white">
                       {offering.course_code}
                     </h3>
                     <p className="text-slate-600 dark:text-slate-400 truncate font-medium">
@@ -1293,12 +1308,12 @@ export const TimetablePlannerPage: React.FC = () => {
                           {asgn ? (
                             asgn.professor_name
                           ) : (
-                            <span className="text-rose-500 font-bold">No Professor</span>
+                            <span className="text-rose-500 font-semibold">No Professor</span>
                           )}
                         </span>
                       </span>
-                      <span className="text-slate-400 font-mono text-[10px]">
-                        {isLab ? '3-hr continuous' : '1-hr session'}
+                      <span className="text-slate-400 font-mono text-[10px] whitespace-nowrap flex-shrink-0">
+                        {isLab ? '3 h' : '1 h'}
                       </span>
                     </div>
                   </div>
@@ -1309,14 +1324,14 @@ export const TimetablePlannerPage: React.FC = () => {
         </div>
 
         {/* Right 3 Columns: Interactive Master Timetable Grid */}
-        <div className="xl:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="min-w-0 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>
                   {activeBranch ? `${activeBranch.name} (${activeBranch.code})` : 'Timetable Grid'}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 font-semibold font-mono">
+                <span className="text-xs px-2 py-0.5 rounded bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 font-semibold font-mono">
                   Sem {activeSemester}
                 </span>
               </h2>
@@ -1334,12 +1349,12 @@ export const TimetablePlannerPage: React.FC = () => {
                       <RefreshCw className="w-3 h-3 animate-spin" /> Validating...
                     </span>
                   ) : slotValidation?.allowed ? (
-                    <span className="px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
+                    <span className="px-2.5 py-1 rounded font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Allowed: Room {activeRoom?.room_no}
                     </span>
                   ) : slotValidation && !slotValidation.allowed ? (
                     <span
-                      className="px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-1 truncate max-w-xs"
+                      className="px-2.5 py-1 rounded font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-1 truncate max-w-xs"
                       title={slotValidation.conflicts[0]?.message}
                     >
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
@@ -1355,9 +1370,9 @@ export const TimetablePlannerPage: React.FC = () => {
 
           {/* Timetable Table Grid */}
           {!activeVersion ? (
-            <div className="py-16 px-4 text-center bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div className="py-16 px-4 text-center bg-slate-50/50 dark:bg-slate-800/20 rounded-md border border-dashed border-slate-300 dark:border-slate-700">
               <RefreshCw className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
                 Loading Timetable...
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -1366,16 +1381,22 @@ export const TimetablePlannerPage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 text-xs">
+              <table className="w-full min-w-[640px] table-fixed border-collapse border border-slate-200 dark:border-slate-800 text-xs">
+                <colgroup>
+                  <col className="w-24" />
+                  {WEEKDAYS.map((day) => (
+                    <col key={day.id} />
+                  ))}
+                </colgroup>
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold">
+                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold">
                     <th className="p-3 border border-slate-200 dark:border-slate-800 w-28 text-left">
                       Time Slot
                     </th>
                     {WEEKDAYS.map((day) => (
                       <th
                         key={day.id}
-                        className="p-3 border border-slate-200 dark:border-slate-800 text-center font-bold"
+                        className="p-3 border border-slate-200 dark:border-slate-800 text-center font-semibold"
                       >
                         {day.name}
                       </th>
@@ -1390,7 +1411,7 @@ export const TimetablePlannerPage: React.FC = () => {
                         <tr>
                           {/* Time Slot Column */}
                           <td className="p-2.5 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 font-mono text-[11px]">
-                            <div className="font-bold text-slate-800 dark:text-slate-200">
+                            <div className="font-semibold text-slate-800 dark:text-slate-200">
                               Slot {slot.no}
                             </div>
                             <div className="text-[10px] text-slate-400">{slot.time}</div>
@@ -1406,13 +1427,13 @@ export const TimetablePlannerPage: React.FC = () => {
                             let cellBg = 'bg-white dark:bg-slate-900';
                             if (isHovered && activeOffering) {
                               if (isValidating) {
-                                cellBg = 'bg-primary-50/40 dark:bg-primary-950/20 ring-2 ring-primary-400/50 inset-0';
+                                cellBg = 'bg-primary-50/40 dark:bg-primary-950/20 ring-1 ring-inset ring-primary-400/60';
                               } else if (slotValidation?.allowed) {
                                 cellBg =
-                                  'bg-emerald-50 dark:bg-emerald-950/40 ring-2 ring-emerald-500 inset-0';
+                                  'bg-emerald-50 dark:bg-emerald-950/40 ring-1 ring-inset ring-emerald-500';
                               } else if (slotValidation && !slotValidation.allowed) {
                                 cellBg =
-                                  'bg-rose-50 dark:bg-rose-950/40 ring-2 ring-rose-500 inset-0';
+                                  'bg-rose-50 dark:bg-rose-950/40 ring-1 ring-inset ring-rose-500';
                               }
                             }
 
@@ -1426,17 +1447,17 @@ export const TimetablePlannerPage: React.FC = () => {
                               >
                                 {meeting ? (
                                   <div
-                                    className={`p-2 rounded-lg border text-[11px] shadow-sm space-y-1 h-full flex flex-col justify-between ${
+                                    className={`p-2 rounded-lg border text-[11px] space-y-1 h-full flex flex-col justify-between ${
                                       meeting.course_type === 'LAB'
                                         ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200'
                                         : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200'
                                     }`}
                                   >
                                     <div>
-                                      <div className="flex items-center justify-between font-bold">
-                                        <span className="font-mono">{meeting.course_code}</span>
-                                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/70 dark:bg-black/40 font-bold border border-black/5 dark:border-white/5">
-                                          R: {meeting.room_no}
+                                      <div className="flex items-center justify-between gap-1 min-w-0 font-semibold">
+                                        <span className="font-mono flex-shrink-0">{meeting.course_code}</span>
+                                        <span className="text-[10px] px-1.5 py-0.2 rounded whitespace-nowrap truncate min-w-0 bg-white/70 dark:bg-black/40 font-semibold border border-black/5 dark:border-white/5">
+                                          {meeting.room_no}
                                         </span>
                                       </div>
                                       <p className="truncate font-medium">{meeting.course_name}</p>
@@ -1444,25 +1465,25 @@ export const TimetablePlannerPage: React.FC = () => {
 
                                     <div className="flex items-center justify-between text-[10px] opacity-80 pt-1 border-t border-black/5 dark:border-white/5">
                                       <span className="truncate">{meeting.professor_name}</span>
-                                      {meeting.group_codes && meeting.group_codes.length > 0 && (
-                                        <span className="font-mono font-bold">
+                                      {meeting.group_codes && meeting.group_codes.length > 0 && !meeting.group_codes.includes('ALL') && (
+                                        <span className="font-mono font-semibold">
                                           [{meeting.group_codes.join(', ')}]
                                         </span>
                                       )}
                                     </div>
                                   </div>
                                 ) : isHovered && activeOffering ? (
-                                  <div className="text-[11px] text-center pt-2">
+                                  <div className="text-[11px] text-center mt-1 h-5 leading-5 overflow-hidden whitespace-nowrap text-ellipsis">
                                     {isValidating ? (
                                       <span className="text-slate-400 font-medium block">
                                         Validating...
                                       </span>
                                     ) : slotValidation?.allowed ? (
-                                      <span className="text-emerald-700 dark:text-emerald-300 font-bold block">
+                                      <span className="text-emerald-700 dark:text-emerald-300 font-semibold block truncate">
                                         + Place in Room {activeRoom?.room_no}
                                       </span>
                                     ) : slotValidation && !slotValidation.allowed ? (
-                                      <span className="text-rose-600 dark:text-rose-400 font-bold block truncate">
+                                      <span className="text-rose-600 dark:text-rose-400 font-semibold block truncate">
                                         {slotValidation?.conflicts[0]?.type || 'Clash'}
                                       </span>
                                     ) : null}
@@ -1476,14 +1497,14 @@ export const TimetablePlannerPage: React.FC = () => {
                         {/* Visual Lunch Break Row */}
                         {isLunchBreakSlot && (
                           <tr className="bg-amber-50/70 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-center text-[11px] font-semibold">
-                            <td className="p-2 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1 font-mono">
-                              <Coffee className="w-3.5 h-3.5" /> 12:30–14:00
+                            <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono whitespace-nowrap">
+                              <Coffee className="w-3.5 h-3.5 inline-block align-[-2px] mr-1" />12:30–14:00
                             </td>
                             <td
                               colSpan={5}
                               className="p-2 border border-slate-200 dark:border-slate-800"
                             >
-                              ☕ Mandatory University Lunch Break — No lectures or laboratory sessions permitted
+                              Mandatory University Lunch Break — No lectures or laboratory sessions permitted
                             </td>
                           </tr>
                         )}
@@ -1499,14 +1520,14 @@ export const TimetablePlannerPage: React.FC = () => {
 
       {/* Meeting Detail Modal */}
       {isDetailModalOpen && selectedMeeting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
                   Scheduled Lecture Details
                 </span>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   {selectedMeeting.course_code} — {selectedMeeting.course_name}
                 </h2>
               </div>
@@ -1521,29 +1542,29 @@ export const TimetablePlannerPage: React.FC = () => {
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500">Faculty Professor</span>
-                <span className="font-bold">{selectedMeeting.professor_name}</span>
+                <span className="font-semibold">{selectedMeeting.professor_name}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500">Day & Time</span>
-                <span className="font-bold">
+                <span className="font-semibold">
                   {selectedMeeting.weekday_display} (Slots {selectedMeeting.start_slot} to{' '}
                   {selectedMeeting.end_slot})
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500">Duration</span>
-                <span className="font-bold">{selectedMeeting.duration_slots} Hour(s)</span>
+                <span className="font-semibold">{selectedMeeting.duration_slots} Hour(s)</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500">Current Room</span>
-                <span className="font-bold font-mono">
+                <span className="font-semibold font-mono">
                   Room {selectedMeeting.room_no} ({selectedMeeting.building_code})
                 </span>
               </div>
               {selectedMeeting.group_codes && selectedMeeting.group_codes.length > 0 && (
                 <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-slate-500">Target Student Group</span>
-                  <span className="font-bold font-mono text-primary-600">
+                  <span className="font-semibold font-mono text-primary-600">
                     {selectedMeeting.group_codes.join(', ')}
                   </span>
                 </div>

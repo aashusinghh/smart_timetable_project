@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Calendar,
   Clock,
@@ -9,7 +9,7 @@ import {
   Award,
   ArrowRight,
   Printer,
-  Sparkles,
+  CalendarCog,
   CheckCircle2,
   Coffee,
   UserCheck,
@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { timetableService } from '../services/timetable';
 import { academicsService } from '../services/academics';
 import { ScheduledMeeting } from '../types';
+import { pickCurrentTerm } from '../utils/terms';
 
 const WEEKDAYS = [
   { id: 1, name: 'Monday', short: 'Mon' },
@@ -62,11 +63,12 @@ export const ProfessorDashboard: React.FC = () => {
     queryFn: () => academicsService.getAcademicTerms(),
   });
 
-  const activeTerm = terms.find((t) => t.id === selectedTermId) || terms[0];
+  const activeTerm = terms.find((t) => t.id === selectedTermId) || pickCurrentTerm(terms);
 
   // Fetch teacher's timetable
   const { data: timetable, isLoading } = useQuery({
     queryKey: ['my-timetable', activeTerm?.id, selectedVersionId],
+    placeholderData: keepPreviousData,
     queryFn: () => timetableService.getMyTimetable(activeTerm?.id, selectedVersionId),
     enabled: !!activeTerm,
   });
@@ -105,21 +107,21 @@ export const ProfessorDashboard: React.FC = () => {
   return (
     <div className="space-y-6 print:space-y-3">
       {/* Hero Welcome Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 p-6 md:p-8 text-white shadow-sm print:hidden">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-6 text-slate-900 dark:text-slate-100 print:hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Super Admin Approved Master Schedule</span>
               </span>
 
               {timetable?.status && (
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                  className={`px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider ${
                     timetable.status === 'PUBLISHED'
-                      ? 'bg-emerald-400 text-slate-900 shadow-sm'
-                      : 'bg-amber-300 text-slate-900'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                   }`}
                 >
                   {timetable.status}
@@ -128,10 +130,10 @@ export const ProfessorDashboard: React.FC = () => {
             </div>
 
             <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                 Welcome, {user?.full_name || 'Professor'}
               </h1>
-              <p className="mt-1 text-sm text-emerald-100 max-w-2xl">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
                 Here is your official teaching timetable prepared and published by the Super Administrator.
               </p>
             </div>
@@ -139,20 +141,20 @@ export const ProfessorDashboard: React.FC = () => {
             {/* Attribution & Profile Info */}
             <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs">
               {timetable?.created_by && (
-                <span className="px-3 py-1.5 rounded-lg bg-black/25 text-emerald-100 backdrop-blur-sm border border-white/20 font-medium flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-300" />
+                <span className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5" />
                   <span>Prepared by: <strong>{timetable.created_by}</strong></span>
                 </span>
               )}
               {profile && (
                 <>
-                  <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/10 font-medium">
+                  <span className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
                     {profile.designation}
                   </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/10 font-medium">
+                  <span className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
                     {profile.department.name} ({profile.department.code})
                   </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-black/20 text-white backdrop-blur-sm border border-white/10 font-medium">
+                  <span className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
                     Max: {profile.max_hours_per_day} hrs/day
                   </span>
                 </>
@@ -168,7 +170,7 @@ export const ProfessorDashboard: React.FC = () => {
                 setSelectedTermId(Number(e.target.value));
                 setSelectedVersionId(undefined);
               }}
-              className="px-3 py-2 text-xs rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-sm font-medium focus:outline-none cursor-pointer"
+              className="px-3 py-2 text-xs rounded-md bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-medium focus:outline-none cursor-pointer"
             >
               {terms.map((t) => (
                 <option key={t.id} value={t.id} className="text-slate-900 bg-white">
@@ -181,7 +183,7 @@ export const ProfessorDashboard: React.FC = () => {
               <select
                 value={selectedVersionId || timetable.schedule_version_id || ''}
                 onChange={(e) => setSelectedVersionId(Number(e.target.value))}
-                className="px-3 py-2 text-xs rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-sm font-medium focus:outline-none cursor-pointer"
+                className="px-3 py-2 text-xs rounded-md bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-medium focus:outline-none cursor-pointer"
               >
                 {timetable.available_versions.map((v) => (
                   <option key={v.id} value={v.id} className="text-slate-900 bg-white">
@@ -193,9 +195,9 @@ export const ProfessorDashboard: React.FC = () => {
 
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 rounded-xl bg-white text-emerald-950 font-bold text-xs hover:bg-emerald-50 shadow-md transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-md bg-white text-emerald-950 font-semibold text-xs hover:bg-emerald-50 transition-colors flex items-center gap-1.5"
             >
-              <Printer className="w-4 h-4 text-emerald-700" />
+              <Printer className="w-4 h-4" />
               <span>Print</span>
             </button>
           </div>
@@ -204,7 +206,7 @@ export const ProfessorDashboard: React.FC = () => {
 
       {/* Print Only Header */}
       <div className="hidden print:block text-center border-b pb-4 mb-4">
-        <h1 className="text-2xl font-bold">{user?.full_name} — Teaching Schedule</h1>
+        <h1 className="text-2xl font-semibold">{user?.full_name} — Teaching Schedule</h1>
         <p className="text-sm text-slate-600 mt-1">
           {activeTerm?.name} • Version: {timetable?.version_name} • Prepared by Super Admin: {timetable?.created_by || 'Super Administrator'}
         </p>
@@ -212,48 +214,48 @@ export const ProfessorDashboard: React.FC = () => {
 
       {/* Metric Cards Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+        <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
             <CalendarDays className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            <div className="text-2xl font-semibold text-slate-900 dark:text-white">
               {dayMeetings.length}
             </div>
             <div className="text-xs text-slate-500 font-medium">Classes Today</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+        <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            <div className="text-2xl font-semibold text-slate-900 dark:text-white">
               {totalSessions}
             </div>
             <div className="text-xs text-slate-500 font-medium">Weekly Sessions</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+        <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            <div className="text-2xl font-semibold text-slate-900 dark:text-white">
               {totalContactHours} hrs
             </div>
             <div className="text-xs text-slate-500 font-medium">Contact Hours / Wk</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0">
+        <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[140px]">
+            <div className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[140px]">
               {timetable?.version_name?.split('(')[0]?.trim() || 'Official'}
             </div>
             <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
@@ -264,12 +266,12 @@ export const ProfessorDashboard: React.FC = () => {
       </div>
 
       {/* TODAY'S SCHEDULE HIGHLIGHT SECTION */}
-      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 md:p-6 shadow-sm print:hidden">
+      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 md:p-6 print:hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 Daily Teaching Roster
               </h2>
             </div>
@@ -279,7 +281,7 @@ export const ProfessorDashboard: React.FC = () => {
           </div>
 
           {/* Weekday Switcher Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-x-auto">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-md overflow-x-auto">
             {WEEKDAYS.map((day) => {
               const isSelected = activeDayTab === day.id;
               const isCurrentDay = currentDayOfWeek === day.id;
@@ -287,9 +289,9 @@ export const ProfessorDashboard: React.FC = () => {
                 <button
                   key={day.id}
                   onClick={() => setActiveDayTab(day.id)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                     isSelected
-                      ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                      ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 '
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -309,7 +311,7 @@ export const ProfessorDashboard: React.FC = () => {
             Loading scheduled classes...
           </div>
         ) : dayMeetings.length === 0 ? (
-          <div className="py-8 px-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center">
+          <div className="py-8 px-4 rounded-md border border-dashed border-slate-200 dark:border-slate-800 text-center">
             <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               No classes scheduled on {WEEKDAYS.find((d) => d.id === activeDayTab)?.name}
@@ -332,7 +334,7 @@ export const ProfessorDashboard: React.FC = () => {
               return (
                 <div
                   key={meeting.id}
-                  className={`p-4 rounded-xl border transition-all shadow-sm flex flex-col justify-between ${
+                  className={`p-4 rounded-md border transition-colors flex flex-col justify-between ${
                     isLab
                       ? 'bg-purple-50/70 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/50'
                       : 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50'
@@ -340,11 +342,11 @@ export const ProfessorDashboard: React.FC = () => {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                         {meeting.course_code}
                       </span>
                       <span
-                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
                           isLab
                             ? 'bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-200'
                             : 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200'
@@ -354,7 +356,7 @@ export const ProfessorDashboard: React.FC = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
                       {meeting.course_name}
                     </h3>
                   </div>
@@ -383,7 +385,7 @@ export const ProfessorDashboard: React.FC = () => {
                     <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                       <span>Cohort: {meeting.cohort_str?.split(' - ')[0] || meeting.branch_code}</span>
                       {meeting.group_codes && meeting.group_codes.length > 0 && meeting.group_codes[0] !== 'ALL' && (
-                        <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 font-semibold">
                           {meeting.group_codes.join(', ')}
                         </span>
                       )}
@@ -397,12 +399,12 @@ export const ProfessorDashboard: React.FC = () => {
       </div>
 
       {/* FULL WEEKLY MASTER GRID SECTION */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 md:p-6 shadow-sm print:border-none print:p-0">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 md:p-6 print:border-none print:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-emerald-600" />
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 Weekly Teaching Schedule Grid
               </h2>
             </div>
@@ -421,9 +423,9 @@ export const ProfessorDashboard: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 text-xs">
+          <table className="w-full min-w-[720px] table-fixed border-collapse border border-slate-200 dark:border-slate-800 text-xs">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-bold">
+              <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-semibold">
                 <th className="p-3 border border-slate-200 dark:border-slate-800 w-32 text-left">
                   Time Slot
                 </th>
@@ -448,7 +450,7 @@ export const ProfessorDashboard: React.FC = () => {
                   <React.Fragment key={slot.no}>
                     <tr>
                       <td className="p-2.5 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 font-mono text-[11px]">
-                        <div className="font-bold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
+                        <div className="font-semibold text-slate-800 dark:text-slate-200">Slot {slot.no}</div>
                         <div className="text-[10px] text-slate-400">{slot.time}</div>
                       </td>
 
@@ -472,7 +474,7 @@ export const ProfessorDashboard: React.FC = () => {
                           >
                             {meeting ? (
                               <div
-                                className={`p-2 rounded-lg border text-[11px] shadow-sm h-full flex flex-col justify-between ${
+                                className={`p-2 rounded-lg border text-[11px] h-full flex flex-col justify-between ${
                                   meeting.course_type === 'LAB'
                                     ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200'
                                     : meeting.course_type === 'SEMINAR'
@@ -481,9 +483,9 @@ export const ProfessorDashboard: React.FC = () => {
                                 }`}
                               >
                                 <div>
-                                  <div className="flex items-center justify-between font-bold">
-                                    <span className="font-mono">{meeting.course_code}</span>
-                                    <span className="text-[9px] px-1 py-0.2 rounded bg-white/70 dark:bg-black/30">
+                                  <div className="flex items-center justify-between gap-1 min-w-0 font-semibold">
+                                    <span className="font-mono flex-shrink-0">{meeting.course_code}</span>
+                                    <span className="text-[9px] px-1 py-0.2 rounded whitespace-nowrap truncate min-w-0 bg-white/70 dark:bg-black/30">
                                       {meeting.course_type}
                                     </span>
                                   </div>
@@ -491,7 +493,7 @@ export const ProfessorDashboard: React.FC = () => {
                                 </div>
 
                                 <div className="pt-1.5 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[10px]">
-                                  <span className="font-bold">
+                                  <span className="font-semibold">
                                     {meeting.building_code} - Rm {meeting.room_no}
                                   </span>
                                   <span className="font-mono opacity-80 truncate max-w-[70px]">
@@ -512,11 +514,11 @@ export const ProfessorDashboard: React.FC = () => {
                     {/* Lunch Break banner after Slot 4 */}
                     {isLunchBreakSlot && (
                       <tr className="bg-amber-50/70 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-center text-[11px] font-semibold print:bg-slate-100">
-                        <td className="p-2 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1 font-mono">
-                          <Coffee className="w-3.5 h-3.5" /> 12:30–14:00
+                        <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono whitespace-nowrap">
+                          <Coffee className="w-3.5 h-3.5 inline-block align-[-2px] mr-1" />12:30–14:00
                         </td>
                         <td colSpan={5} className="p-2 border border-slate-200 dark:border-slate-800">
-                          ☕ University Lunch Break & Faculty Rest Period
+                          University Lunch Break & Faculty Rest Period
                         </td>
                       </tr>
                     )}
@@ -530,14 +532,14 @@ export const ProfessorDashboard: React.FC = () => {
 
       {/* Academic Holidays Notice */}
       {timetable?.holidays && timetable.holidays.length > 0 && (
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 print:hidden">
-          <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+        <div className="p-4 rounded-md bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 print:hidden">
+          <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
             Academic Holidays for {activeTerm?.name}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             {timetable.holidays.map((h) => (
               <div key={h.id} className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="font-bold block text-primary-600">{h.date}</span>
+                <span className="font-semibold block text-primary-600">{h.date}</span>
                 <span className="text-slate-600 dark:text-slate-300">{h.name}</span>
               </div>
             ))}

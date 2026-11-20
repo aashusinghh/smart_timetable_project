@@ -12,7 +12,7 @@ import {
   Search,
   Layers,
   Clock,
-  Sparkles,
+  CalendarCog,
   FlaskConical,
   UserCheck,
 } from 'lucide-react';
@@ -218,18 +218,18 @@ export const CoursesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
             <BookOpen className="w-3.5 h-3.5" />
             <span>Curriculum & Catalog</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">University Course Catalog</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">University Course Catalog</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Define courses, credit values, and enforce weekly meeting delivery rules (e.g. 2×3h labs, 3×1h theory).
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Course</span>
@@ -237,7 +237,7 @@ export const CoursesPage: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center gap-3">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px] relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -315,7 +315,7 @@ export const CoursesPage: React.FC = () => {
       </div>
 
       {/* Courses List */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-xs text-slate-500">Loading courses...</div>
         ) : filteredCourses.length === 0 ? (
@@ -341,20 +341,20 @@ export const CoursesPage: React.FC = () => {
                   const isLab = c.course_type === 'LAB';
                   return (
                     <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white">
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-primary-600 dark:text-primary-400">{c.code}</span>
                           <span>— {c.name}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                        <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                           Semester {c.semester || 1}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                          className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold ${
                             isLab
                               ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
                               : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
@@ -367,7 +367,7 @@ export const CoursesPage: React.FC = () => {
                       <td className="px-5 py-3.5">
                         {rule ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                            <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
                               {rule.weekly_meetings} × {rule.duration_slots}h
                             </span>
                             <span className="text-[11px] text-slate-400">
@@ -423,10 +423,10 @@ export const CoursesPage: React.FC = () => {
 
       {/* Add / Edit Course Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {editingCourse ? 'Edit Course' : 'Add New Course'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -494,11 +494,11 @@ export const CoursesPage: React.FC = () => {
                 <div>
                   <label className="font-semibold block mb-1 flex items-center justify-between">
                     <span>Target Semester</span>
-                    <span className="text-[10px] text-primary-600 font-bold">Required</span>
+                    <span className="text-[10px] text-primary-600 font-semibold">Required</span>
                   </label>
                   <select
                     {...register('semester')}
-                    className="w-full px-3 py-2 rounded-lg border border-primary-300 dark:border-primary-700 bg-primary-50/30 dark:bg-primary-950/20 font-bold text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2 rounded-lg border border-primary-300 dark:border-primary-700 bg-primary-50/30 dark:bg-primary-950/20 font-semibold text-slate-900 dark:text-white"
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((sem) => (
                       <option key={sem} value={sem}>
@@ -563,12 +563,12 @@ export const CoursesPage: React.FC = () => {
               </div>
 
               {/* Delivery Rule Box (§5.3 Architecture Spec) */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="p-4 rounded-md bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">
                     Weekly Delivery Rule (§5.3 Contact Spec)
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">
                     Total: {totalHours} Contact Hours
                   </span>
                 </div>
@@ -624,7 +624,7 @@ export const CoursesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700"
+                  className="px-4 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700"
                 >
                   {isSubmitting ? 'Saving...' : editingCourse ? 'Update Course' : 'Create Course'}
                 </button>

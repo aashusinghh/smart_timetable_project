@@ -4,7 +4,7 @@ import {
   Calendar as CalendarIcon,
   Plus,
   Trash2,
-  Sparkles,
+  CalendarCog,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -14,6 +14,7 @@ import {
 import { timetableService } from '../services/timetable';
 import { academicsService } from '../services/academics';
 import { HolidayCalendar, DateOverride } from '../types';
+import { pickCurrentTerm } from '../utils/terms';
 
 export const HolidaysPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -29,7 +30,7 @@ export const HolidaysPage: React.FC = () => {
     queryFn: () => academicsService.getAcademicTerms(),
   });
 
-  const activeTerm = terms.find((t) => t.id === selectedTermId) || terms[0];
+  const activeTerm = terms.find((t) => t.id === selectedTermId) || pickCurrentTerm(terms);
 
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays', activeTerm?.id],
@@ -68,7 +69,7 @@ export const HolidaysPage: React.FC = () => {
     <div className="space-y-6">
       {/* Toast */}
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow-lg animate-bounce">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-md bg-emerald-600 text-white text-xs font-semibold">
           <CheckCircle2 className="w-4 h-4" />
           <span>{successToast}</span>
         </div>
@@ -77,11 +78,11 @@ export const HolidaysPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+            <CalendarCog className="w-3.5 h-3.5" />
             <span>Academic Exceptions & Calendar</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Holidays & Class Overrides</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Holidays & Class Overrides</h1>
           <p className="text-sm text-slate-500">
             Define no-teaching academic holidays and inspect single-day class cancellations and reschedules.
           </p>
@@ -102,7 +103,7 @@ export const HolidaysPage: React.FC = () => {
 
           <button
             onClick={() => setIsAddHolidayOpen(true)}
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add Holiday</span>
@@ -112,10 +113,10 @@ export const HolidaysPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Holidays List */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 Academic Holidays ({holidays.length})
               </h2>
               <p className="text-xs text-slate-500">Dates where classes are suspended across the institution.</p>
@@ -129,15 +130,15 @@ export const HolidaysPage: React.FC = () => {
               holidays.map((h) => (
                 <div
                   key={h.id}
-                  className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs"
+                  className="p-3.5 rounded-md border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 flex flex-col items-center justify-center text-primary-600 font-bold leading-tight">
+                    <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950 flex flex-col items-center justify-center text-primary-600 font-semibold leading-tight">
                       <span className="text-[10px] uppercase">{new Date(h.date).toLocaleString('default', { month: 'short' })}</span>
                       <span className="text-sm font-mono">{new Date(h.date).getDate()}</span>
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white">{h.name}</h3>
+                      <h3 className="font-semibold text-slate-900 dark:text-white">{h.name}</h3>
                       <p className="text-slate-500 font-mono text-[11px]">{h.date}</p>
                     </div>
                   </div>
@@ -159,10 +160,10 @@ export const HolidaysPage: React.FC = () => {
         </div>
 
         {/* Date Overrides List */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 Class Date Overrides ({dateOverrides.length})
               </h2>
               <p className="text-xs text-slate-500">Single-day cancellations and reschedules.</p>
@@ -176,14 +177,14 @@ export const HolidaysPage: React.FC = () => {
               dateOverrides.map((ov) => (
                 <div
                   key={ov.id}
-                  className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5"
+                  className="p-3.5 rounded-md border border-slate-200 dark:border-slate-800 text-xs space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    <span className="font-mono font-semibold text-slate-900 dark:text-white">
                       {ov.meeting_course} • {ov.meeting_professor}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         ov.status === 'CANCELLED'
                           ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
                           : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
@@ -208,10 +209,10 @@ export const HolidaysPage: React.FC = () => {
 
       {/* Add Holiday Modal */}
       {isAddHolidayOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Add Academic Holiday</h2>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Add Academic Holiday</h2>
               <button onClick={() => setIsAddHolidayOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
@@ -247,7 +248,7 @@ export const HolidaysPage: React.FC = () => {
                   disabled={!newName || !newDate || !activeTerm}
                   onClick={() => {
                     addHolidayMutation.mutate({
-                      term: activeTerm.id,
+                      term: activeTerm!.id,
                       name: newName,
                       date: newDate,
                       is_academic_holiday: true,

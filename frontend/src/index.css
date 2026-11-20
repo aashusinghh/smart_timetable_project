@@ -3,9 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    /* Reserve the scrollbar's space so pages don't shift sideways when
+       content grows past the viewport (e.g. after picking a timetable). */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply antialiased text-slate-900 bg-slate-50 dark:text-slate-100 dark:bg-slate-950;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    @apply bg-primary-200 text-primary-950;
   }
 }
-

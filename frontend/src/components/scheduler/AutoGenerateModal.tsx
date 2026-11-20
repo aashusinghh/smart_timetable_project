@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
+  CalendarCog,
   X,
   Clock,
   Layers,
@@ -74,24 +74,22 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl overflow-hidden animate-scale-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 w-full max-w-xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 text-white flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-white/15 rounded-xl backdrop-blur-md">
-              <Sparkles className="w-6 h-6 text-amber-300" />
-            </div>
+            <CalendarCog className="w-6 h-6 text-primary-700 dark:text-primary-300" strokeWidth={1.5} />
             <div>
-              <h3 className="text-xl font-bold">Smart Auto-Scheduling</h3>
-              <p className="text-xs text-white/80 mt-0.5">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart Auto-Scheduling</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Generate clash-free timetable using Google OR-Tools CP-SAT
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -100,7 +98,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {validationError && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-center gap-2.5 text-sm text-red-700 dark:text-red-300">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-md flex items-center gap-2.5 text-sm text-red-700 dark:text-red-300">
               <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
               <span>{validationError}</span>
             </div>
@@ -122,7 +120,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
               </button>
             </div>
 
-            <div className="max-h-44 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 space-y-1 bg-slate-50/50 dark:bg-slate-950/30">
+            <div className="max-h-44 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-md p-2.5 space-y-1 bg-slate-50/50 dark:bg-slate-950/30">
               {branches.length === 0 ? (
                 <p className="text-xs text-slate-500 py-3 text-center">No branches available for this term.</p>
               ) : (
@@ -147,7 +145,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
                         <span className="font-medium">{b.code}</span>
                         <span className="text-xs text-slate-500 dark:text-slate-400">({b.name})</span>
                       </div>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      <span className="text-xs px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                         {b.degree_name}
                       </span>
                     </div>
@@ -162,7 +160,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary-500" />
-                Solver Time Limit: <span className="text-primary-600 dark:text-primary-400 font-bold">{timeLimit}s</span>
+                Solver Time Limit: <span className="text-primary-600 dark:text-primary-400 font-semibold">{timeLimit}s</span>
               </label>
               <span className="text-xs text-slate-500">Default: 60s (10s – 300s)</span>
             </div>
@@ -183,7 +181,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
           </div>
 
           {/* Replace Existing Option */}
-          <div className="p-3.5 border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl">
+          <div className="p-3.5 border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 rounded-md">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -207,16 +205,16 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-primary-500/25 flex items-center gap-2 transition-all disabled:opacity-50"
+              className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <CalendarCog className="w-4 h-4" />
               {isLoading ? 'Starting Generator...' : 'Start Auto-Scheduling'}
             </button>
           </div>

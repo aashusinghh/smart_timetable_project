@@ -26,6 +26,9 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lamb
 
 # Application definition
 INSTALLED_APPS = [
+    # Must come first: makes `runserver` serve ASGI so the planner's
+    # live-sync WebSocket (/ws/timetable/...) works in development.
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -135,7 +138,9 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
+    # The frontend reads only the first page of list endpoints, so keep pages
+    # large enough to hold whole catalogues (rooms, courses, cohorts, ...).
+    'PAGE_SIZE': 1000,
 }
 
 # SimpleJWT Settings

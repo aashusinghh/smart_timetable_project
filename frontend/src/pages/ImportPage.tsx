@@ -107,11 +107,11 @@ export const ImportPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
           <FileSpreadsheet className="w-3.5 h-3.5" />
           <span>Bulk Data Ingestion</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">CSV Data Import</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">CSV Data Import</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Upload CSV files to batch-import curriculum structures or faculty members with row-level error validation.
         </p>
@@ -125,9 +125,9 @@ export const ImportPage: React.FC = () => {
             setSelectedFile(null);
             setResult(null);
           }}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
+          className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
             activeTab === 'curriculum'
-              ? 'bg-primary-600 text-white shadow-sm'
+              ? 'bg-primary-600 text-white '
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
@@ -139,9 +139,9 @@ export const ImportPage: React.FC = () => {
             setSelectedFile(null);
             setResult(null);
           }}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
+          className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
             activeTab === 'professors'
-              ? 'bg-primary-600 text-white shadow-sm'
+              ? 'bg-primary-600 text-white '
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
@@ -152,7 +152,7 @@ export const ImportPage: React.FC = () => {
       {/* Upload & Action Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left 2 Cols: Drag & Drop Zone */}
-        <div className="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+        <div className="md:col-span-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-4">
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -161,7 +161,7 @@ export const ImportPage: React.FC = () => {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleFileDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               dragOver
                 ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/20'
                 : 'border-slate-300 dark:border-slate-700 hover:border-primary-400'
@@ -175,14 +175,14 @@ export const ImportPage: React.FC = () => {
               className="hidden"
             />
             <UploadCloud className="w-10 h-10 text-primary-500 mx-auto mb-3" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
               {selectedFile ? selectedFile.name : 'Choose a CSV file or drag and drop it here'}
             </h3>
             <p className="text-xs text-slate-400 mt-1">
               Supports .csv files up to 10MB formatted according to specification.
             </p>
             {selectedFile && (
-              <span className="inline-block mt-3 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              <span className="inline-block mt-3 px-3 py-1 rounded text-xs font-mono font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                 Ready to Import: {(selectedFile.size / 1024).toFixed(1)} KB
               </span>
             )}
@@ -195,7 +195,7 @@ export const ImportPage: React.FC = () => {
             <button
               onClick={() => importMutation.mutate()}
               disabled={!selectedFile || importMutation.isPending}
-              className="px-5 py-2.5 rounded-lg bg-primary-600 text-white font-semibold text-xs shadow-sm hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 rounded-lg bg-primary-600 text-white font-semibold text-xs hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-2"
             >
               {importMutation.isPending ? (
                 <>
@@ -213,8 +213,8 @@ export const ImportPage: React.FC = () => {
         </div>
 
         {/* Right Col: Template Instructions & Download */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4 text-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-4 text-xs">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-primary-500" />
             <span>CSV File Template</span>
           </h2>
@@ -237,7 +237,7 @@ export const ImportPage: React.FC = () => {
             <span>Download Sample CSV Template</span>
           </button>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-2">
+          <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-2">
             <span className="font-semibold text-slate-700 dark:text-slate-300 block">Required Columns:</span>
             {activeTab === 'curriculum' ? (
               <ul className="list-disc pl-4 space-y-1 text-slate-500 font-mono text-[11px]">
@@ -267,7 +267,7 @@ export const ImportPage: React.FC = () => {
       {/* Import Result Feedback */}
       {result && (
         <div
-          className={`p-6 rounded-2xl border shadow-sm space-y-4 ${
+          className={`p-6 rounded-lg border space-y-4 ${
             result.success
               ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60'
               : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/60'
@@ -280,7 +280,7 @@ export const ImportPage: React.FC = () => {
               <FileX className="w-6 h-6 text-rose-600 dark:text-rose-400" />
             )}
             <div>
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white">
                 {result.success ? 'Import Completed Successfully!' : 'Import Failed — Errors Detected'}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300">
@@ -292,14 +292,14 @@ export const ImportPage: React.FC = () => {
           </div>
 
           {result.errors && result.errors.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-900/60 overflow-hidden text-xs">
-              <div className="p-3 bg-rose-100/60 dark:bg-rose-950/40 font-bold text-rose-900 dark:text-rose-200 border-b border-rose-200 dark:border-rose-900/40">
+            <div className="bg-white dark:bg-slate-900 rounded-md border border-rose-200 dark:border-rose-900/60 overflow-hidden text-xs">
+              <div className="p-3 bg-rose-100/60 dark:bg-rose-950/40 font-semibold text-rose-900 dark:text-rose-200 border-b border-rose-200 dark:border-rose-900/40">
                 Row-Level Error Report ({result.errors.length} issues)
               </div>
               <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-60 overflow-y-auto">
                 {result.errors.map((err, i) => (
                   <div key={i} className="p-3 flex items-start gap-3">
-                    <span className="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 text-[10px]">
+                    <span className="px-2 py-0.5 rounded font-mono font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 text-[10px]">
                       Row {err.row}
                     </span>
                     <span className="text-slate-700 dark:text-slate-300">{err.message}</span>

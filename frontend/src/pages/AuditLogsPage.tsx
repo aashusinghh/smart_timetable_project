@@ -57,18 +57,18 @@ export const AuditLogsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Security & Audit Trails</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Schedule Audit Logs</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Schedule Audit Logs</h1>
         <p className="text-sm text-slate-500">
           Immutable history of all timetable modifications, slot reservations, review submissions, and publications.
         </p>
       </div>
 
       {/* Filters Bar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center gap-4">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-4">
         <div>
           <label className="block text-[11px] font-semibold text-slate-500 mb-1">Filter by Action</label>
           <select
@@ -121,9 +121,9 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
+          <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="p-3 w-8"></th>
               <th className="p-3">Timestamp</th>
@@ -156,7 +156,7 @@ export const AuditLogsPage: React.FC = () => {
                         {new Date(log.created_at).toLocaleString()}
                       </td>
                       <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${getActionBadgeColor(log.action)}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getActionBadgeColor(log.action)}`}>
                           {log.action}
                         </span>
                       </td>
@@ -177,7 +177,7 @@ export const AuditLogsPage: React.FC = () => {
                         <td colSpan={6} className="p-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                                 Before State:
                               </span>
                               <pre className="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto max-h-48">
@@ -185,7 +185,7 @@ export const AuditLogsPage: React.FC = () => {
                               </pre>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                                 After State:
                               </span>
                               <pre className="p-3 rounded-lg bg-slate-900 text-cyan-400 font-mono text-[11px] overflow-x-auto max-h-48">

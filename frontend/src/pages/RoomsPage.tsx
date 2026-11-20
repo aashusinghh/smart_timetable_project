@@ -15,7 +15,7 @@ import {
   CalendarX2,
   Clock,
   Layers,
-  Sparkles,
+  CalendarCog,
 } from 'lucide-react';
 import { facilitiesService } from '../services/facilities';
 import { Room, RoomType, Building, RoomUnavailability } from '../types';
@@ -225,18 +225,18 @@ export const RoomsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
             <Building2 className="w-3.5 h-3.5" />
             <span>Facilities & Infrastructure</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Campus Rooms & Labs</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Campus Rooms & Labs</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Configure classrooms, computer labs, electronics labs, and manage availability constraints.
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Room</span>
@@ -244,7 +244,7 @@ export const RoomsPage: React.FC = () => {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center gap-3">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px] relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -286,7 +286,7 @@ export const RoomsPage: React.FC = () => {
       </div>
 
       {/* Rooms Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-xs text-slate-500">Loading rooms...</div>
         ) : filteredRooms.length === 0 ? (
@@ -314,7 +314,7 @@ export const RoomsPage: React.FC = () => {
                   const typeBadge = ROOM_TYPE_LABELS[room.room_type] || ROOM_TYPE_LABELS.CLASSROOM;
                   return (
                     <tr key={room.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white">
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white">
                         <div className="flex items-center gap-2">
                           <DoorOpen className="w-4 h-4 text-primary-500" />
                           <span>{room.room_no}</span>
@@ -326,7 +326,7 @@ export const RoomsPage: React.FC = () => {
                         <span className="block text-[11px] text-slate-400">{room.campus_code} • {room.building_code}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${typeBadge.color}`}>
+                        <span className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold ${typeBadge.color}`}>
                           {typeBadge.label}
                         </span>
                       </td>
@@ -379,10 +379,10 @@ export const RoomsPage: React.FC = () => {
 
       {/* Room Modal (Add/Edit) */}
       {isRoomModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {editingRoom ? 'Edit Room' : 'Add New Room'}
               </h2>
               <button onClick={() => setIsRoomModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -492,7 +492,7 @@ export const RoomsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 font-semibold shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 font-semibold "
                 >
                   {isSubmitting ? 'Saving...' : editingRoom ? 'Update Room' : 'Create Room'}
                 </button>
@@ -504,11 +504,11 @@ export const RoomsPage: React.FC = () => {
 
       {/* Room Unavailability Modal */}
       {unavailRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   Room Unavailability — {unavailRoom.room_no}
                 </h2>
                 <p className="text-xs text-slate-500">Block specific weekdays or dates from being scheduled.</p>
@@ -550,9 +550,9 @@ export const RoomsPage: React.FC = () => {
             {/* Add new unavailability form */}
             <form
               onSubmit={handleUnavailSubmit((data) => addUnavailMutation.mutate(data))}
-              className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+              className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-md border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
             >
-              <h3 className="font-bold text-slate-800 dark:text-slate-200">Add Unavailability Block</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200">Add Unavailability Block</h3>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-medium text-slate-500">Recurring Weekday (1=Mon..5=Fri)</label>

@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldAlert,
-  Sparkles,
+  CalendarCog,
   DoorOpen,
   Calendar,
   BookOpen,
@@ -60,38 +60,38 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-primary-600 via-indigo-600 to-indigo-700 p-6 md:p-8 text-white shadow-sm">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-6 text-slate-900 dark:text-slate-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Phase 4 — Real-Time Updates, Publication & Faculty Portals</span>
+            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
+              <CalendarCog className="w-3.5 h-3.5" />
+              <span>Administration</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               Welcome, {user?.full_name || 'Administrator'}
             </h1>
-            <p className="mt-1 text-sm text-primary-100 max-w-xl">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-xl">
               University timetable master administration portal. Review draft schedules, perform full clash sweeps, publish live schedules, and inspect audit logs.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to="/schedule-review"
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white text-primary-700 hover:bg-primary-50 shadow-sm transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-700 text-white hover:bg-primary-800 transition-colors flex items-center gap-1.5"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-primary-600" />
+              <ShieldCheck className="w-3.5 h-3.5" />
               <span>Review & Publish</span>
             </Link>
             <Link
               to="/timetable"
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-500/30 hover:bg-primary-500/50 text-white border border-white/20 backdrop-blur-sm transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5"
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Timetable Planner</span>
             </Link>
             <Link
               to="/audit-logs"
-              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-500/30 hover:bg-primary-500/50 text-white border border-white/20 backdrop-blur-sm transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Audit Trail</span>
@@ -102,7 +102,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Departments & Branches
@@ -112,14 +112,14 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white">
               {departments.length} / {branches.length}
             </span>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Depts / Active Branches</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Campus Rooms & Labs
@@ -129,14 +129,14 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white">
               {rooms.length}
             </span>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Total classrooms & labs</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Courses in Catalog
@@ -146,14 +146,14 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white">
               {courses.length}
             </span>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Theory & lab courses</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Faculty Members
@@ -163,7 +163,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white">
               {professors.length}
             </span>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Professors with profiles</p>
@@ -173,21 +173,21 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Phase 4 Timetable Operations */}
       <div>
-        <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-          Phase 4 Schedule Operations & Publication
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">
+          Schedule operations
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           <Link
             to="/schedule-review"
-            className="p-5 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/40 dark:to-teal-950/20 border-2 border-emerald-500 hover:border-emerald-600 transition-all shadow-sm group"
+            className="p-5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 hover:border-emerald-500 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow">
+              <div className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <ArrowRight className="w-4 h-4 text-emerald-500 group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-emerald-500 transition-colors" />
             </div>
-            <h3 className="font-bold text-sm text-emerald-950 dark:text-emerald-100">Schedule Review</h3>
+            <h3 className="font-semibold text-sm text-emerald-950 dark:text-emerald-100">Schedule Review</h3>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
               Inspect submitted schedules, run 5-rule collision sweep, and publish live versions.
             </p>
@@ -195,15 +195,15 @@ export const AdminDashboard: React.FC = () => {
 
           <Link
             to="/timetable"
-            className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary-500 transition-all shadow-sm group"
+            className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary-500 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                 <Calendar className="w-5 h-5" />
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary-600 transition-colors" />
             </div>
-            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Timetable Planner</h3>
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Timetable Planner</h3>
             <p className="text-xs text-slate-500 mt-1">
               Interactive 8-slot weekly grid with live WebSocket synchronization & reservation locking.
             </p>
@@ -211,15 +211,15 @@ export const AdminDashboard: React.FC = () => {
 
           <Link
             to="/audit-logs"
-            className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-rose-500 transition-all shadow-sm group"
+            className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-rose-500 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                 <FileText className="w-5 h-5" />
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-600 transition-colors" />
             </div>
-            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Audit Trail Logs</h3>
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Audit Trail Logs</h3>
             <p className="text-xs text-slate-500 mt-1">
               Track who scheduled, moved, deleted, reviewed, or published every timetable meeting.
             </p>
@@ -227,15 +227,15 @@ export const AdminDashboard: React.FC = () => {
 
           <Link
             to="/holidays"
-            className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500 transition-all shadow-sm group"
+            className="p-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500 transition-colors group"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                 <Coffee className="w-5 h-5" />
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
             </div>
-            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Holidays & Overrides</h3>
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Holidays & Overrides</h3>
             <p className="text-xs text-slate-500 mt-1">
               Define academic calendar holidays and swap timetable day schedules for specific dates.
             </p>

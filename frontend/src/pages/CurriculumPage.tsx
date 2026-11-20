@@ -86,18 +86,18 @@ export const CurriculumPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
           <GraduationCap className="w-3.5 h-3.5" />
           <span>Curriculum Structure</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Branch Curriculum Builder</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Branch Curriculum Builder</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Map required and elective courses from catalog to specific branch semesters.
         </p>
       </div>
 
       {/* Selectors Bar */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center gap-4">
+      <div className="p-4 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-4">
         {/* Branch Selector */}
         <div className="min-w-[240px]">
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Select Branch</label>
@@ -127,9 +127,9 @@ export const CurriculumPage: React.FC = () => {
               <button
                 key={sem}
                 onClick={() => setSelectedSemester(sem)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
                   selectedSemester === sem
-                    ? 'bg-primary-600 text-white shadow-sm'
+                    ? 'bg-primary-600 text-white '
                     : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
@@ -149,17 +149,17 @@ export const CurriculumPage: React.FC = () => {
       {/* Main Grid: Current Curriculum Items & Add Course Box */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Items in Semester */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {activeBranch?.code} — Semester {selectedSemester} Curriculum
               </h2>
               <p className="text-xs text-slate-500">
                 {curriculumItems.length} course(s) assigned
               </p>
             </div>
-            <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
+            <span className="text-xs font-semibold text-primary-600 dark:text-primary-400">
               Total Credits:{' '}
               {curriculumItems.reduce((acc, curr) => acc + (curr.course_credit || 0), 0)}
             </span>
@@ -176,11 +176,11 @@ export const CurriculumPage: React.FC = () => {
               {curriculumItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-xs"
+                  className="flex items-center justify-between p-3.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-xs"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         item.course_type === 'LAB'
                           ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
                           : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
@@ -189,7 +189,7 @@ export const CurriculumPage: React.FC = () => {
                       {item.course_type}
                     </span>
                     <div>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      <span className="font-mono font-semibold text-slate-900 dark:text-white">
                         {item.course_code}
                       </span>{' '}
                       <span className="text-slate-700 dark:text-slate-300">— {item.course_name}</span>
@@ -216,8 +216,8 @@ export const CurriculumPage: React.FC = () => {
         </div>
 
         {/* Right Col: Add Course Form */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white">Add Course to Semester</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Add Course to Semester</h2>
           <p className="text-xs text-slate-500">
             Select a course from university catalog to include in this semester.
           </p>
@@ -252,7 +252,7 @@ export const CurriculumPage: React.FC = () => {
             <button
               onClick={onAddCourse}
               disabled={!selectedCourseId || addCurriculumMutation.isPending}
-              className="w-full py-2 rounded-lg bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              className="w-full py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
               {addCurriculumMutation.isPending ? 'Adding...' : '+ Add to Curriculum'}
             </button>

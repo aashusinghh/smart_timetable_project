@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
+  CalendarCog,
   ArrowRight,
   RefreshCw,
   Calendar,
@@ -48,7 +48,7 @@ export const ScheduleReviewPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable-versions-review'] });
       queryClient.invalidateQueries({ queryKey: ['timetable-versions'] });
-      setSuccessToast(`🎉 Successfully PUBLISHED schedule! Previous published version archived.`);
+      setSuccessToast(`Successfully PUBLISHED schedule! Previous published version archived.`);
       setTimeout(() => setSuccessToast(null), 4000);
     },
     onError: (err: any) => {
@@ -74,7 +74,7 @@ export const ScheduleReviewPage: React.FC = () => {
     <div className="space-y-6">
       {/* Toast */}
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow-lg animate-bounce">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-md bg-emerald-600 text-white text-xs font-semibold">
           <CheckCircle2 className="w-4 h-4" />
           <span>{successToast}</span>
         </div>
@@ -82,11 +82,11 @@ export const ScheduleReviewPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 mb-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 mb-2">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Administrative Publication Desk</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Schedule Review & Publication</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Schedule Review & Publication</h1>
         <p className="text-sm text-slate-500">
           Verify global university timetable coverage, inspect constraint sweeps, and officially publish semester schedules.
         </p>
@@ -94,7 +94,7 @@ export const ScheduleReviewPage: React.FC = () => {
 
       {/* Error alert */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start justify-between gap-3 text-xs text-rose-800 dark:text-rose-200">
+        <div className="p-4 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start justify-between gap-3 text-xs text-rose-800 dark:text-rose-200">
           <div className="flex items-center gap-2 font-semibold">
             <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{errorMessage}</span>
@@ -106,11 +106,11 @@ export const ScheduleReviewPage: React.FC = () => {
       )}
 
       {reviewVersions.length === 0 ? (
-        <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3">
           <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 mx-auto flex items-center justify-center">
             <Check className="w-6 h-6" />
           </div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">No Schedules Awaiting Review</h2>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">No Schedules Awaiting Review</h2>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             All semester drafts have been approved or are currently being scheduled by branch coordinators.
           </p>
@@ -119,7 +119,7 @@ export const ScheduleReviewPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Pending Review List */}
           <div className="lg:col-span-1 space-y-3">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
               Schedules Under Review ({reviewVersions.length})
             </h2>
 
@@ -129,17 +129,17 @@ export const ScheduleReviewPage: React.FC = () => {
                 <div
                   key={v.id}
                   onClick={() => setSelectedVersionId(v.id)}
-                  className={`p-4 rounded-xl border text-xs cursor-pointer transition-all ${
+                  className={`p-4 rounded-md border text-xs cursor-pointer transition-colors ${
                     isSelected
-                      ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30 shadow-md ring-2 ring-indigo-500/20'
+                      ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30 ring-2 ring-indigo-500/20'
                       : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-400'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-slate-900 dark:text-white text-sm">
+                    <span className="font-semibold text-slate-900 dark:text-white text-sm">
                       {v.name || `Version ${v.version_no}`}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                       UNDER REVIEW
                     </span>
                   </div>
@@ -158,10 +158,10 @@ export const ScheduleReviewPage: React.FC = () => {
           {/* Right: Validation & Publication Actions */}
           {activeVersion && (
             <div className="lg:col-span-2 space-y-5">
-              <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+              <div className="p-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                       {activeVersion.name || `Version ${activeVersion.version_no}`} — Review Sweep
                     </h2>
                     <p className="text-xs text-slate-500">Academic Term: {activeVersion.term_name}</p>
@@ -183,10 +183,10 @@ export const ScheduleReviewPage: React.FC = () => {
                     Running authoritative conflict validation across all branch meetings...
                   </div>
                 ) : sweepResult?.valid ? (
-                  <div className="p-5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-3">
+                  <div className="p-5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-bold text-sm text-emerald-900 dark:text-emerald-200">
+                      <h3 className="font-semibold text-sm text-emerald-900 dark:text-emerald-200">
                         Zero Collisions Detected — Ready to Publish
                       </h3>
                       <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
@@ -195,10 +195,10 @@ export const ScheduleReviewPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start gap-3">
+                  <div className="p-5 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-bold text-sm text-rose-900 dark:text-rose-200">
+                      <h3 className="font-semibold text-sm text-rose-900 dark:text-rose-200">
                         {sweepResult?.total_conflicts || 0} Conflict(s) Detected
                       </h3>
                       <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">
@@ -237,9 +237,9 @@ export const ScheduleReviewPage: React.FC = () => {
                         publishMutation.mutate(activeVersion.id);
                       }
                     }}
-                    className={`px-5 py-2.5 text-xs font-bold rounded-lg text-white shadow-sm transition-all flex items-center gap-2 ${
+                    className={`px-5 py-2.5 text-xs font-semibold rounded-lg text-white transition-colors flex items-center gap-2 ${
                       sweepResult?.valid
-                        ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer shadow-emerald-500/20'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer '
                         : 'bg-slate-300 dark:bg-slate-800 cursor-not-allowed opacity-60'
                     }`}
                   >

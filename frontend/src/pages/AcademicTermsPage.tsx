@@ -134,11 +134,11 @@ export const AcademicTermsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
             <Calendar className="w-3.5 h-3.5" />
             <span>Academic Calendar & Slots</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Academic Calendar & Time Slots</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Academic Calendar & Time Slots</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Configure academic years, semester terms, and inspect university daily scheduling slots.
           </p>
@@ -158,7 +158,7 @@ export const AcademicTermsPage: React.FC = () => {
               setErrorMessage(null);
               setIsTermModalOpen(true);
             }}
-            className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition-colors"
+            className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors"
           >
             + Add Academic Term
           </button>
@@ -168,22 +168,22 @@ export const AcademicTermsPage: React.FC = () => {
       {/* Grid: Academic Years & Terms */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Academic Years Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Academic Years</h2>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Academic Years</h2>
             <span className="text-xs text-slate-400">{years.length} configured</span>
           </div>
           <div className="space-y-2.5">
             {years.map((y) => (
               <div
                 key={y.id}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-xs"
+                className="flex items-center justify-between p-3.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-xs"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white text-sm">{y.name}</span>
+                    <span className="font-semibold text-slate-900 dark:text-white text-sm">{y.name}</span>
                     {y.is_current && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                         Current
                       </span>
                     )}
@@ -209,21 +209,21 @@ export const AcademicTermsPage: React.FC = () => {
         </div>
 
         {/* Academic Terms Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Academic Terms</h2>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Academic Terms</h2>
             <span className="text-xs text-slate-400">{terms.length} active terms</span>
           </div>
           <div className="space-y-2.5">
             {terms.map((t) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-xs"
+                className="flex items-center justify-between p-3.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-xs"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white">{t.name}</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">
+                    <span className="font-semibold text-slate-900 dark:text-white">{t.name}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">
                       {t.term_type}
                     </span>
                   </div>
@@ -246,13 +246,13 @@ export const AcademicTermsPage: React.FC = () => {
       </div>
 
       {/* University Time Slots Visualizer (§6 of architecture spec) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-5">
         <div>
           <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
             <Clock className="w-4 h-4 text-primary-500" />
             <span>Architecture Specification §6</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Daily Standard Time Slots (8 One-Hour Slots)
           </h2>
           <p className="text-xs text-slate-500 max-w-2xl">
@@ -263,7 +263,7 @@ export const AcademicTermsPage: React.FC = () => {
 
         {/* Morning Session */}
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">
             <Sun className="w-4 h-4" />
             <span>Morning Session (08:30 – 12:30)</span>
           </div>
@@ -271,13 +271,13 @@ export const AcademicTermsPage: React.FC = () => {
             {morningSlots.map((slot) => (
               <div
                 key={slot.id || slot.slot_no}
-                className="p-3.5 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20 text-xs"
+                className="p-3.5 rounded-md border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20 text-xs"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-slate-900 dark:text-white">Slot {slot.slot_no}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">Slot {slot.slot_no}</span>
                   <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">1 Hour</span>
                 </div>
-                <div className="text-sm font-extrabold text-amber-800 dark:text-amber-300">
+                <div className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                   {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                 </div>
               </div>
@@ -286,14 +286,14 @@ export const AcademicTermsPage: React.FC = () => {
         </div>
 
         {/* Lunch Break Visual Gap */}
-        <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-400">
+        <div className="flex items-center justify-center gap-2 py-3 rounded-md bg-slate-100 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-400">
           <Coffee className="w-4 h-4 text-amber-600" />
           <span>Lunch Break (12:30 – 14:00) — No classes can cross or be scheduled</span>
         </div>
 
         {/* Afternoon Session */}
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
             <Sunset className="w-4 h-4" />
             <span>Afternoon Session (14:00 – 18:00)</span>
           </div>
@@ -301,13 +301,13 @@ export const AcademicTermsPage: React.FC = () => {
             {afternoonSlots.map((slot) => (
               <div
                 key={slot.id || slot.slot_no}
-                className="p-3.5 rounded-xl border border-indigo-200/60 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-950/20 text-xs"
+                className="p-3.5 rounded-md border border-indigo-200/60 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-950/20 text-xs"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-slate-900 dark:text-white">Slot {slot.slot_no}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">Slot {slot.slot_no}</span>
                   <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">1 Hour</span>
                 </div>
-                <div className="text-sm font-extrabold text-indigo-800 dark:text-indigo-300">
+                <div className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
                   {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                 </div>
               </div>
@@ -318,10 +318,10 @@ export const AcademicTermsPage: React.FC = () => {
 
       {/* Add Year Modal */}
       {isYearModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Add Academic Year</h2>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Add Academic Year</h2>
               <button onClick={() => setIsYearModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
@@ -358,10 +358,10 @@ export const AcademicTermsPage: React.FC = () => {
 
       {/* Add Term Modal */}
       {isTermModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Add Academic Term</h2>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Add Academic Term</h2>
               <button onClick={() => setIsTermModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
