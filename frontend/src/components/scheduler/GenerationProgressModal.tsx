@@ -6,7 +6,6 @@ import {
   AlertCircle,
   X,
   Cpu,
-  BrainCircuit,
   Flame,
 } from 'lucide-react';
 import { schedulerService } from '../../services/scheduler';
@@ -71,7 +70,7 @@ export const GenerationProgressModal: React.FC<GenerationProgressModalProps> = (
   if (!isOpen) return null;
 
   const percentage = taskStatus?.percentage ?? 10;
-  const message = taskStatus?.message || 'Optimizing timetable constraints with OR-Tools CP-SAT...';
+  const message = taskStatus?.message || 'Optimizing timetable constraints and allocations...';
   const isFailed = taskStatus?.status === 'FAILURE' || !!errorMsg;
   const isCompleted = taskStatus?.status === 'SUCCESS';
 
@@ -100,7 +99,7 @@ export const GenerationProgressModal: React.FC<GenerationProgressModalProps> = (
             </div>
           ) : (
             <div className="w-20 h-20 rounded-lg border border-slate-200 dark:border-slate-700 text-primary-700 dark:text-primary-300 flex items-center justify-center">
-              <BrainCircuit className="w-10 h-10" strokeWidth={1.5} />
+              <CalendarCog className="w-10 h-10 text-primary-600 dark:text-primary-400" strokeWidth={1.5} />
             </div>
           )}
         </div>
@@ -131,7 +130,7 @@ export const GenerationProgressModal: React.FC<GenerationProgressModalProps> = (
             <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
               <span className="flex items-center gap-1.5">
                 <Cpu className="w-3.5 h-3.5 text-primary-500" />
-                CP-SAT Solver Engine
+                Optimization Engine
               </span>
               <span className="font-semibold text-primary-600 dark:text-primary-400">{percentage}%</span>
             </div>

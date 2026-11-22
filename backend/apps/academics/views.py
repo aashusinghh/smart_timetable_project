@@ -144,6 +144,12 @@ class CohortViewSet(viewsets.ModelViewSet):
         term_id = self.request.query_params.get('term')
         semester = self.request.query_params.get('semester')
 
+        if self.request.user and self.request.user.is_authenticated:
+            if getattr(self.request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = self.request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None:
+                    qs = qs.filter(branch_id__in=coord_branch_ids)
+
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
         if term_id:
@@ -218,6 +224,16 @@ class CourseViewSet(viewsets.ModelViewSet):
         semester = self.request.query_params.get('semester')
         professor_id = self.request.query_params.get('professor')
 
+        if self.request.user and self.request.user.is_authenticated:
+            if getattr(self.request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = self.request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None:
+                    from django.db.models import Q
+                    qs = qs.filter(
+                        Q(branch_id__in=coord_branch_ids) |
+                        Q(curriculum_inclusions__branch_id__in=coord_branch_ids)
+                    ).distinct()
+
         if course_type:
             qs = qs.filter(course_type=course_type)
         if dept_id:
@@ -248,6 +264,13 @@ class CurriculumItemViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         branch_id = self.request.query_params.get('branch')
         semester = self.request.query_params.get('semester')
+
+        if self.request.user and self.request.user.is_authenticated:
+            if getattr(self.request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = self.request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None:
+                    qs = qs.filter(branch_id__in=coord_branch_ids)
+
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
         if semester:
@@ -260,8 +283,8 @@ class CurriculumItemViewSet(viewsets.ModelViewSet):
 )
 class CourseOfferingViewSet(viewsets.ModelViewSet):
     queryset = CourseOffering.objects.select_related(
-        'term', 'cohort__branch', 'curriculum_item__course'
-    ).prefetch_related('teaching_assignments').all()
+        'term', 'cohort__branch', 'curriculum_item__course__professor'
+    ).prefetch_related('teaching_assignments__professor').all()
     serializer_class = CourseOfferingSerializer
     permission_classes = [IsSuperAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -272,9 +295,29 @@ class CourseOfferingViewSet(viewsets.ModelViewSet):
         term_id = self.request.query_params.get('term')
         cohort_id = self.request.query_params.get('cohort')
         branch_id = self.request.query_params.get('branch')
+
+        if self.request.user and self.request.user.is_authenticated:
+            if getattr(self.request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = self.request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None:
+                    qs = qs.filter(cohort__branch_id__in=coord_branch_ids)
+
         if term_id:
             qs = qs.filter(term_id=term_id)
         if cohort_id:
+            # Ensure teaching assignments exist if course has professor
+            unassigned = CourseOffering.objects.filter(
+                cohort_id=cohort_id,
+                teaching_assignments__isnull=True,
+                curriculum_item__course__professor__isnull=False
+            ).select_related('curriculum_item__course')
+            for off in unassigned:
+                TeachingAssignment.objects.get_or_create(
+                    course_offering=off,
+                    professor=off.curriculum_item.course.professor,
+                    instruction_group=None,
+                    defaults={'is_primary': True, 'is_active': True}
+                )
             qs = qs.filter(cohort_id=cohort_id)
         if branch_id:
             qs = qs.filter(cohort__branch_id=branch_id)
@@ -361,6 +404,19 @@ class TeachingAssignmentViewSet(viewsets.ModelViewSet):
         if professor_id:
             qs = qs.filter(professor_id=professor_id)
         if cohort_id:
+            # Self-heal teaching assignments for cohort offerings whose course has a designated professor
+            unassigned = CourseOffering.objects.filter(
+                cohort_id=cohort_id,
+                teaching_assignments__isnull=True,
+                curriculum_item__course__professor__isnull=False
+            ).select_related('curriculum_item__course')
+            for off in unassigned:
+                TeachingAssignment.objects.get_or_create(
+                    course_offering=off,
+                    professor=off.curriculum_item.course.professor,
+                    instruction_group=None,
+                    defaults={'is_primary': True, 'is_active': True}
+                )
             qs = qs.filter(course_offering__cohort_id=cohort_id)
         if term_id:
             qs = qs.filter(course_offering__term_id=term_id)

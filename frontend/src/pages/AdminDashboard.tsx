@@ -63,15 +63,11 @@ export const AdminDashboard: React.FC = () => {
       <div className="border-b border-slate-200 dark:border-slate-800 pb-6 text-slate-900 dark:text-slate-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
-              <CalendarCog className="w-3.5 h-3.5" />
-              <span>Administration</span>
-            </div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               Welcome, {user?.full_name || 'Administrator'}
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-xl">
-              University timetable master administration portal. Review draft schedules, perform full clash sweeps, publish live schedules, and inspect audit logs.
+              University timetable administration portal. Review draft schedules, perform conflict validation, publish live schedules, and inspect audit logs.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -189,7 +185,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <h3 className="font-semibold text-sm text-emerald-950 dark:text-emerald-100">Schedule Review</h3>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-              Inspect submitted schedules, run 5-rule collision sweep, and publish live versions.
+              Inspect submitted schedules, run conflict checks, and publish live versions.
             </p>
           </Link>
 

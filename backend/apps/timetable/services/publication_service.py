@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from django.db import transaction
 from rest_framework.exceptions import PermissionDenied, ValidationError, APIException
 from rest_framework import status
@@ -83,7 +83,7 @@ class TimetablePublicationService:
         return schedule_version
 
     @classmethod
-    def full_sweep_validation(cls, schedule_version: ScheduleVersion) -> List[Dict[str, Any]]:
+    def full_sweep_validation(cls, schedule_version: ScheduleVersion, user: Optional[User] = None) -> List[Dict[str, Any]]:
         """
         Performs a full authoritative validation sweep across all meetings in this schedule version.
         Returns a list of any clashes or rule violations found.
@@ -107,10 +107,14 @@ class TimetablePublicationService:
                 room=m.room,
                 instruction_group_ids=group_ids,
                 exclude_meeting_id=m.id,
-                user=None, # System validation bypasses coordinator branch restriction
+                user=user,
+                check_permissions=False, # System sweep verifies timetable constraints, not coordinator edit permissions
             )
             if not val_res['allowed']:
                 for c in val_res['conflicts']:
+                    # Permission and edit-lock statuses are not timetable scheduling clashes
+                    if c.get('type') in ['VERSION_UNDER_REVIEW', 'VERSION_LOCKED', 'PERMISSION_DENIED']:
+                        continue
                     c['meeting_id'] = m.id
                     c['course_code'] = m.teaching_assignment.course_offering.curriculum_item.course.code
                     all_conflicts.append(c)
@@ -132,7 +136,7 @@ class TimetablePublicationService:
             raise ValidationError("This schedule version is already PUBLISHED.")
 
         # 1. Full-sweep validation check
-        conflicts = cls.full_sweep_validation(schedule_version)
+        conflicts = cls.full_sweep_validation(schedule_version, user=user)
         if conflicts:
             raise PublicationConflictException(detail={
                 'detail': f'Cannot publish schedule: found {len(conflicts)} unresolved collision(s) or constraint violation(s).',
@@ -170,6 +174,49 @@ class TimetablePublicationService:
                 'term_name': schedule_version.term.name,
                 'status': 'PUBLISHED',
                 'message': f"Timetable for {schedule_version.term.name} is now officially PUBLISHED!"
+            }
+        )
+
+        return schedule_version
+
+    @classmethod
+    @transaction.atomic
+    def unpublish_schedule(cls, schedule_version: ScheduleVersion, user: User) -> ScheduleVersion:
+        """
+        Super Admin unpublishes schedule version, returning it to DRAFT so modifications can be made.
+        """
+        is_admin = user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN)
+        if not is_admin:
+            raise PermissionDenied("Only Super Administrators can unpublish timetable schedules.")
+
+        if schedule_version.status != ScheduleVersion.Status.PUBLISHED:
+            raise ValidationError(f"Only PUBLISHED schedules can be unpublished (current status: {schedule_version.status}).")
+
+        # 1. Transition status from PUBLISHED -> DRAFT
+        schedule_version.status = ScheduleVersion.Status.DRAFT
+        schedule_version.revision += 1
+        schedule_version.save(update_fields=['status', 'revision', 'updated_at'])
+
+        # 2. Audit Log
+        ScheduleChangeAudit.objects.create(
+            schedule_version=schedule_version,
+            meeting_id=None,
+            action='UNPUBLISH',
+            before_json={'status': ScheduleVersion.Status.PUBLISHED},
+            after_json={'status': ScheduleVersion.Status.DRAFT},
+            user=user
+        )
+
+        # 3. Broadcast WebSocket event
+        TimetableReservationService._broadcast_ws_event(
+            schedule_version,
+            "schedule.status_changed",
+            {
+                'schedule_version_id': schedule_version.id,
+                'term_id': schedule_version.term_id,
+                'term_name': schedule_version.term.name,
+                'status': 'DRAFT',
+                'message': f"Timetable for {schedule_version.term.name} has been unpublished and returned to DRAFT."
             }
         )
 

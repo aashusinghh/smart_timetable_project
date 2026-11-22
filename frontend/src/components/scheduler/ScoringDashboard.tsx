@@ -97,7 +97,7 @@ export const ScoringDashboard: React.FC<ScoringDashboardProps> = ({
                 </span>
               </div>
               <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-                Authoritative Schedule Quality Score
+                Schedule Quality Evaluation
               </h4>
             </div>
           </div>

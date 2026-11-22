@@ -7,6 +7,7 @@ from .views import (
     TimetableGridView,
     AvailableRoomsView,
     BatchUpdateMeetingsView,
+    ClearTimetableMeetingsView,
     ScheduleChangeAuditViewSet,
     MyTimetableAPIView,
     ProfessorTimetableAPIView,
@@ -28,6 +29,7 @@ urlpatterns = [
     path('timetable/<int:version_id>/grid', TimetableGridView.as_view(), name='timetable-grid'),
     path('timetable/<int:version_id>/available-rooms', AvailableRoomsView.as_view(), name='available-rooms'),
     path('timetable/batch-update', BatchUpdateMeetingsView.as_view(), name='timetable-batch-update'),
+    path('timetable/clear', ClearTimetableMeetingsView.as_view(), name='timetable-clear'),
 
     # Phase 4 Read-only views
     path('my-timetable/', MyTimetableAPIView.as_view(), name='my-timetable'),

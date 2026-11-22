@@ -74,7 +74,7 @@ class TestScheduleLifecycleAndPublication:
         # Create an existing published schedule version
         old_version = ScheduleVersion.objects.create(
             term=term,
-            version_no=1,
+            version_no=10,
             status=ScheduleVersion.Status.PUBLISHED,
             name='Old Published Version',
         )
@@ -82,7 +82,7 @@ class TestScheduleLifecycleAndPublication:
         # Create a new draft version
         new_version = ScheduleVersion.objects.create(
             term=term,
-            version_no=2,
+            version_no=11,
             status=ScheduleVersion.Status.DRAFT,
             name='New Draft Version',
         )
@@ -214,3 +214,67 @@ class TestScheduleLifecycleAndPublication:
         assert create_audit.user == admin_user
         assert delete_audit is not None
         assert delete_audit.user == admin_user
+
+    def test_under_review_sweep_and_publish_does_not_produce_false_version_under_review_conflicts(
+        self, api_client, admin_user, coordinator_user, timetable_environment, academic_setup, facilities
+    ):
+        """
+        Verify that a schedule version in UNDER_REVIEW status does not produce false
+        VERSION_UNDER_REVIEW conflicts during full validation sweeps or publication,
+        allowing authorized administrators to approve and publish without being falsely blocked.
+        """
+        term = academic_setup['term']
+        version = ScheduleVersion.objects.create(
+            term=term,
+            version_no=30,
+            status=ScheduleVersion.Status.DRAFT,
+            name='Review Sweep Test Version',
+        )
+        asgn = timetable_environment['asgn_dbms']
+        room = facilities['classroom1']
+
+        # Place valid meeting in draft
+        TimetableReservationService.save_meeting(
+            schedule_version=version,
+            teaching_assignment=asgn,
+            weekday=1,
+            start_slot=1,
+            duration_slots=1,
+            room=room,
+            user=admin_user,
+        )
+
+        # Transition to UNDER_REVIEW
+        api_client.force_authenticate(user=admin_user)
+        resp_submit = api_client.post(f"/api/timetable/versions/{version.id}/submit-review/")
+        assert resp_submit.status_code == status.HTTP_200_OK
+
+        version.refresh_from_db()
+        assert version.status == ScheduleVersion.Status.UNDER_REVIEW
+
+        # 1. Validation Sweep must return valid=True, total_conflicts=0, and no VERSION_UNDER_REVIEW
+        resp_sweep = api_client.get(f"/api/timetable/versions/{version.id}/validate-sweep/")
+        assert resp_sweep.status_code == status.HTTP_200_OK
+        assert resp_sweep.data['valid'] is True
+        assert resp_sweep.data['total_conflicts'] == 0
+        assert len(resp_sweep.data['conflicts']) == 0
+
+        # 2. Coordinator attempting mutation while UNDER_REVIEW is still blocked with 403
+        api_client.force_authenticate(user=coordinator_user)
+        resp_coord_place = api_client.post('/api/timetable/meetings/', {
+            'schedule_version_id': version.id,
+            'teaching_assignment_id': asgn.id,
+            'weekday': 2,
+            'start_slot': 1,
+            'duration_slots': 1,
+            'room_id': room.id,
+        }, format='json')
+        assert resp_coord_place.status_code == status.HTTP_403_FORBIDDEN
+
+        # 3. Super Admin approves and publishes the UNDER_REVIEW version cleanly
+        api_client.force_authenticate(user=admin_user)
+        resp_publish = api_client.post(f"/api/timetable/versions/{version.id}/publish/")
+        assert resp_publish.status_code == status.HTTP_200_OK
+
+        version.refresh_from_db()
+        assert version.status == ScheduleVersion.Status.PUBLISHED

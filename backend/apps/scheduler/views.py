@@ -36,11 +36,11 @@ def check_coordinator_branch_access(user, branch_ids: List[int]):
     if user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN):
         return True
 
-    user_branch_ids = set(
-        user.role_assignments.filter(
-            role__code=Role.Code.BRANCH_COORDINATOR
-        ).values_list('branch_id', flat=True)
-    )
+    coord_ids = user.get_coordinated_branch_ids() if hasattr(user, 'get_coordinated_branch_ids') else None
+    if coord_ids is None:
+        return True
+
+    user_branch_ids = set(coord_ids)
     if not branch_ids:
         # Coordinator without specific branch ids must only operate on their assigned branches
         return True

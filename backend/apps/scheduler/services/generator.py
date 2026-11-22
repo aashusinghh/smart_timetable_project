@@ -478,7 +478,14 @@ class TimetableGenerator:
             prof_tasks[t['professor'].id].append(t)
 
         for pid, ptasks in prof_tasks.items():
+            prof_user = ptasks[0]['professor']
+            prof_profile = getattr(prof_user, 'professor_profile', None)
+            max_daily_hours = getattr(prof_profile, 'max_hours_per_day', 6) or 6
+
             for day in range(1, 6):
+                fixed_hours_on_day = len([s for (d, s) in fixed_prof_slots[pid] if d == day])
+                allowed_hours = max(0, max_daily_hours - fixed_hours_on_day)
+
                 slot_active_vars = {}
                 for slot in range(1, 9):
                     svars = []
@@ -492,6 +499,10 @@ class TimetableGenerator:
                         p_active = model.NewBoolVar(f"p_{pid}_d{day}_s{slot}_active")
                         model.Add(sum(svars) == p_active)
                         slot_active_vars[slot] = p_active
+
+                # Hard constraint: Daily teaching hours must not exceed faculty fatigue limit
+                if slot_active_vars:
+                    model.Add(sum(slot_active_vars.values()) <= allowed_hours)
 
                 # Professor gap penalty
                 for slot in [2, 3, 6, 7]:

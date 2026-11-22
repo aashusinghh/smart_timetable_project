@@ -149,13 +149,9 @@ export const CohortsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <Users className="w-3.5 h-3.5" />
-            <span>Student Cohorts & Batches</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Cohorts & Lab Groups</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Organize student batches by branch and semester. Divide into lab groups (e.g. A-L1, A-L2) for laboratory scheduling.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Organize student batches by branch and semester. Divide into lab groups for laboratory scheduling.
           </p>
         </div>
         <button

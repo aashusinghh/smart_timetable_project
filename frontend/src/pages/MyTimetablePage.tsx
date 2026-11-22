@@ -75,12 +75,8 @@ export const MyTimetablePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 mb-2">
-            <CalendarCog className="w-3.5 h-3.5" />
-            <span>Faculty Personal Schedule</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">My Weekly Timetable</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 mt-1">
             Official published timetable for {timetable?.professor_name || 'Faculty Member'}.
           </p>
         </div>

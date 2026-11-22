@@ -37,6 +37,7 @@ from .serializers import (
     ScheduleChangeAuditSerializer,
     HolidayCalendarSerializer,
     DateOverrideSerializer,
+    ClearTimetableRequestSerializer,
 )
 from .services.validator import TimetableValidator
 from .services.reservation_service import TimetableReservationService, ConflictException
@@ -109,7 +110,7 @@ class ScheduleVersionViewSet(viewsets.ModelViewSet):
     def validate_sweep(self, request, pk=None):
         """Perform authoritative pre-publication clash sweep on all meetings."""
         version = self.get_object()
-        conflicts = TimetablePublicationService.full_sweep_validation(version)
+        conflicts = TimetablePublicationService.full_sweep_validation(version, user=request.user)
         return Response({
             'valid': len(conflicts) == 0,
             'total_conflicts': len(conflicts),
@@ -122,6 +123,13 @@ class ScheduleVersionViewSet(viewsets.ModelViewSet):
         version = self.get_object()
         published = TimetablePublicationService.publish_schedule(version, request.user)
         return Response(ScheduleVersionSerializer(published).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unpublish')
+    def unpublish(self, request, pk=None):
+        """Admin unpublishes a PUBLISHED schedule version back to DRAFT so modifications can be made."""
+        version = self.get_object()
+        unpublished = TimetablePublicationService.unpublish_schedule(version, request.user)
+        return Response(ScheduleVersionSerializer(unpublished).data, status=status.HTTP_200_OK)
 
 
 class ValidatePlacementView(APIView):
@@ -253,6 +261,26 @@ class TimetableGridView(APIView):
         professor_id = request.query_params.get('professor_id')
         room_id = request.query_params.get('room_id')
 
+        if request.user and request.user.is_authenticated:
+            if getattr(request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None:
+                    if branch_id and int(branch_id) not in coord_branch_ids:
+                        return Response(
+                            {'detail': 'Branch coordinators are only authorized to view schedules for their assigned branch.'},
+                            status=status.HTTP_403_FORBIDDEN
+                        )
+                    if cohort_id:
+                        from apps.academics.models import Cohort
+                        cohort_obj = Cohort.objects.filter(id=cohort_id).first()
+                        if cohort_obj and cohort_obj.branch_id not in coord_branch_ids:
+                            return Response(
+                                {'detail': 'Branch coordinators are only authorized to view schedules for their assigned branch.'},
+                                status=status.HTTP_403_FORBIDDEN
+                            )
+                    if not branch_id and not cohort_id:
+                        qs = qs.filter(teaching_assignment__course_offering__cohort__branch_id__in=coord_branch_ids)
+
         if cohort_id:
             qs = qs.filter(teaching_assignment__course_offering__cohort_id=cohort_id)
         if branch_id:
@@ -342,6 +370,62 @@ class BatchUpdateMeetingsView(APIView):
         saved = TimetableReservationService.batch_update(version, updates, user=request.user)
         serializer = ScheduledMeetingSerializer(saved, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ClearTimetableMeetingsView(APIView):
+    """
+    Clears all scheduled meetings (fixed timetable slots) for a given department and semester
+    (and optionally filtered by branch or cohort) within a schedule version or term.
+    Releases all associated professor, room, and student group reservations.
+    """
+    permission_classes = [IsBranchCoordinator]
+
+    @extend_schema(
+        request=ClearTimetableRequestSerializer,
+        description="Clear all scheduled timetable meetings for a department and semester.",
+    )
+    def post(self, request):
+        serializer = ClearTimetableRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        version_id = data.get('schedule_version_id')
+        term_id = data.get('term_id')
+
+        version = None
+        if version_id:
+            version = get_object_or_404(ScheduleVersion, id=version_id)
+        elif term_id:
+            version = ScheduleVersion.objects.filter(term_id=term_id).order_by('-version_no').first()
+            if not version:
+                return Response(
+                    {'detail': 'No schedule version found for the specified term.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return Response(
+                {'detail': 'Either schedule_version_id or term_id must be provided.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        department_id = data.get('department_id')
+        semester_no = data.get('semester_no')
+        branch_id = data.get('branch_id')
+        cohort_id = data.get('cohort_id')
+        clear_all = data.get('clear_all', False)
+
+        result = TimetableReservationService.clear_department_semester_meetings(
+            schedule_version=version,
+            department_id=department_id,
+            semester_no=semester_no,
+            branch_id=branch_id,
+            cohort_id=cohort_id,
+            clear_all=clear_all,
+            user=request.user,
+        )
+
+        return Response(result, status=status.HTTP_200_OK)
+
 
 
 # Phase 4: Read-Only & Publication Endpoints
@@ -496,16 +580,29 @@ class BranchTimetableAPIView(APIView):
 
     def get(self, request, branch_id):
         branch = get_object_or_404(Branch, id=branch_id)
+        if request.user and request.user.is_authenticated:
+            if getattr(request.user, 'is_coordinator_only', lambda: False)():
+                coord_branch_ids = request.user.get_coordinated_branch_ids()
+                if coord_branch_ids is not None and branch.id not in coord_branch_ids:
+                    return Response(
+                        {'detail': 'Branch coordinators are only authorized to view schedules for their assigned branch.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
         term_id = request.query_params.get('term_id')
         cohort_id = request.query_params.get('cohort_id')
         semester_no = request.query_params.get('semester_no')
+        published_only = request.query_params.get('published_only', 'false').lower() in ('true', '1')
 
         versions = ScheduleVersion.objects.all()
         if term_id:
             versions = versions.filter(term_id=term_id)
 
         pub_ver = versions.filter(status=ScheduleVersion.Status.PUBLISHED).first()
-        active_ver = pub_ver or versions.first()
+        if published_only:
+            active_ver = pub_ver
+        else:
+            active_ver = pub_ver or versions.first()
 
         meetings = []
         if active_ver:
@@ -531,6 +628,9 @@ class BranchTimetableAPIView(APIView):
             'branch_code': branch.code,
             'branch_name': branch.name,
             'schedule_version_id': active_ver.id if active_ver else None,
+            'schedule_status': active_ver.status if active_ver else None,
+            'is_published': (active_ver.status == ScheduleVersion.Status.PUBLISHED) if active_ver else False,
+            'version_name': active_ver.name if active_ver else None,
             'meetings': meetings,
         })
 

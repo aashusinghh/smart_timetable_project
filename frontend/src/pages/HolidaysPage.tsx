@@ -78,12 +78,8 @@ export const HolidaysPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <CalendarCog className="w-3.5 h-3.5" />
-            <span>Academic Exceptions & Calendar</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Holidays & Class Overrides</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 mt-1">
             Define no-teaching academic holidays and inspect single-day class cancellations and reschedules.
           </p>
         </div>

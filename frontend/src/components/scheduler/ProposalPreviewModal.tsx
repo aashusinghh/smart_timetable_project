@@ -128,7 +128,7 @@ export const ProposalPreviewModal: React.FC<ProposalPreviewModalProps> = ({
                 <span>•</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  0 Hard-Constraint Clashes
+                  No Clashes Detected
                 </span>
               </p>
             </div>

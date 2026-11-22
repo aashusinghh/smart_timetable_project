@@ -353,6 +353,15 @@ class CourseOffering(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+        if self.curriculum_item_id and getattr(self.curriculum_item, 'course_id', None):
+            prof = self.curriculum_item.course.professor
+            if prof and not self.teaching_assignments.exists():
+                TeachingAssignment.objects.get_or_create(
+                    course_offering=self,
+                    professor=prof,
+                    instruction_group=None,
+                    defaults={'is_primary': True, 'is_active': True}
+                )
 
 
 class TeachingAssignment(models.Model):

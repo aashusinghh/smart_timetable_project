@@ -3,6 +3,9 @@ from .base import *
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# Remove daphne in tests to avoid Twisted reactor network interface hanging in sandbox
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app != 'daphne']
+
 # Explicitly force SQLite for tests so running pytest or manage.py test never requires MySQL
 DATABASES = {
     'default': {

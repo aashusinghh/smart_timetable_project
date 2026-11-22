@@ -134,7 +134,7 @@ export const ProfessorDashboard: React.FC = () => {
                 Welcome, {user?.full_name || 'Professor'}
               </h1>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
-                Here is your official teaching timetable prepared and published by the Super Administrator.
+                Here is your official teaching timetable published by the academic office.
               </p>
             </div>
 
@@ -208,7 +208,7 @@ export const ProfessorDashboard: React.FC = () => {
       <div className="hidden print:block text-center border-b pb-4 mb-4">
         <h1 className="text-2xl font-semibold">{user?.full_name} — Teaching Schedule</h1>
         <p className="text-sm text-slate-600 mt-1">
-          {activeTerm?.name} • Version: {timetable?.version_name} • Prepared by Super Admin: {timetable?.created_by || 'Super Administrator'}
+          {activeTerm?.name} • Version: {timetable?.version_name} • Published by: {timetable?.created_by || 'Academic Office'}
         </p>
       </div>
 

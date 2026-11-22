@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,9 @@ import {
   CalendarCog,
   FlaskConical,
   UserCheck,
+  Lock,
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { academicsService } from '../services/academics';
 import { facultyService } from '../services/faculty';
 import { Course, CourseType, Department, Branch } from '../types';
@@ -39,6 +41,23 @@ type CourseFormData = z.infer<typeof courseSchema>;
 
 export const CoursesPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const isSuperAdmin = Boolean(user?.is_superuser || user?.roles?.includes('SUPER_ADMIN'));
+  const isCoordinator = !isSuperAdmin && Boolean(user?.roles?.includes('BRANCH_COORDINATOR'));
+
+  const coordinatorAssignments = useMemo(() => {
+    return (
+      user?.role_assignments?.filter(
+        (a) => a.role?.code === 'BRANCH_COORDINATOR' && a.branch
+      ) || []
+    );
+  }, [user]);
+
+  const coordinatorBranchIds = useMemo(() => {
+    return coordinatorAssignments.map((a) => a.branch!.id);
+  }, [coordinatorAssignments]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState<number | undefined>();
@@ -55,10 +74,37 @@ export const CoursesPage: React.FC = () => {
     queryFn: academicsService.getDepartments,
   });
 
-  const { data: branches = [] } = useQuery({
+  const { data: branches = [] } = useQuery<Branch[]>({
     queryKey: ['branches'],
     queryFn: () => academicsService.getBranches(),
   });
+
+  const allowedBranches = useMemo(() => {
+    if (!isCoordinator || coordinatorBranchIds.length === 0) {
+      return branches;
+    }
+    return branches.filter((b) => coordinatorBranchIds.includes(b.id));
+  }, [branches, isCoordinator, coordinatorBranchIds]);
+
+  const allowedDepartments = useMemo(() => {
+    if (!isCoordinator || coordinatorBranchIds.length === 0) {
+      return departments;
+    }
+    const deptIds = new Set(allowedBranches.map((b) => b.department));
+    return departments.filter((d) => deptIds.has(d.id));
+  }, [departments, allowedBranches, isCoordinator, coordinatorBranchIds]);
+
+  // Automatically lock branchFilter for coordinator
+  useEffect(() => {
+    if (isCoordinator && allowedBranches.length > 0) {
+      if (!branchFilter || !allowedBranches.some((b) => b.id === branchFilter)) {
+        setBranchFilter(allowedBranches[0].id);
+        if (allowedBranches[0].department) {
+          setDeptFilter(allowedBranches[0].department);
+        }
+      }
+    }
+  }, [isCoordinator, allowedBranches, branchFilter]);
 
   const { data: professors = [] } = useQuery({
     queryKey: ['professors'],
@@ -103,9 +149,20 @@ export const CoursesPage: React.FC = () => {
   });
 
   const selectedType = watch('course_type');
+  const selectedFormDept = watch('department');
   const weeklyMeetings = watch('weekly_meetings') || 1;
   const durationSlots = watch('duration_slots') || 1;
   const totalHours = weeklyMeetings * durationSlots;
+
+  const filteredBranches = useMemo(() => {
+    if (!deptFilter) return allowedBranches;
+    return allowedBranches.filter((b: Branch) => b.department === deptFilter);
+  }, [allowedBranches, deptFilter]);
+
+  const modalBranches = useMemo(() => {
+    if (!selectedFormDept) return branches;
+    return branches.filter((b: Branch) => b.department === Number(selectedFormDept));
+  }, [branches, selectedFormDept]);
 
   // Auto-adjust default delivery rules when course type changes
   const onCourseTypeChange = (type: CourseType) => {
@@ -218,22 +275,29 @@ export const CoursesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Curriculum & Catalog</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">University Course Catalog</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Define courses, credit values, and enforce weekly meeting delivery rules (e.g. 2×3h labs, 3×1h theory).
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Define courses, credit values, and weekly meeting delivery structures.
           </p>
+          {isCoordinator && allowedBranches.length > 0 && (
+            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs border border-amber-200 dark:border-amber-800/60 font-medium">
+              <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>
+                Branch Coordinator View: Restricted to courses under{' '}
+                <strong>{allowedBranches.map((b) => `${b.name} (${b.code})`).join(', ')}</strong>
+              </span>
+            </div>
+          )}
         </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Course</span>
-        </button>
+        {isSuperAdmin && (
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Course</span>
+          </button>
+        )}
       </div>
 
       {/* Filter Bar */}
@@ -275,27 +339,38 @@ export const CoursesPage: React.FC = () => {
         </select>
 
         <select
-          value={branchFilter || ''}
-          onChange={(e) => setBranchFilter(e.target.value ? Number(e.target.value) : undefined)}
-          className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+          value={deptFilter || ''}
+          disabled={isCoordinator && allowedDepartments.length <= 1}
+          onChange={(e) => {
+            const newDept = e.target.value ? Number(e.target.value) : undefined;
+            setDeptFilter(newDept);
+            if (newDept) {
+              const matchingBranches = allowedBranches.filter((b: Branch) => b.department === newDept);
+              if (!matchingBranches.some((b: Branch) => b.id === branchFilter)) {
+                setBranchFilter(undefined);
+              }
+            }
+          }}
+          className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 disabled:opacity-75 disabled:cursor-not-allowed"
         >
-          <option value="">All Branches</option>
-          {branches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name} ({b.code})
+          {!isCoordinator && <option value="">All Departments</option>}
+          {allowedDepartments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({d.code})
             </option>
           ))}
         </select>
 
         <select
-          value={deptFilter || ''}
-          onChange={(e) => setDeptFilter(e.target.value ? Number(e.target.value) : undefined)}
-          className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+          value={branchFilter || ''}
+          disabled={isCoordinator && filteredBranches.length <= 1}
+          onChange={(e) => setBranchFilter(e.target.value ? Number(e.target.value) : undefined)}
+          className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 disabled:opacity-75 disabled:cursor-not-allowed"
         >
-          <option value="">All Departments</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name} ({d.code})
+          {!isCoordinator && <option value="">{deptFilter ? 'All Branches in Dept' : 'All Branches'}</option>}
+          {filteredBranches.map((b: Branch) => (
+            <option key={b.id} value={b.id}>
+              {b.name} ({b.code})
             </option>
           ))}
         </select>
@@ -397,20 +472,28 @@ export const CoursesPage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-5 py-3.5 text-right space-x-2">
-                        <button
-                          onClick={() => openEditModal(c)}
-                          className="p-1.5 text-slate-500 hover:text-primary-600 rounded-lg"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Delete course ${c.code}?`)) deleteMutation.mutate(c.id);
-                          }}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isSuperAdmin ? (
+                          <>
+                            <button
+                              onClick={() => openEditModal(c)}
+                              className="p-1.5 text-slate-500 hover:text-primary-600 rounded-lg"
+                              title="Edit course"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete course ${c.code}?`)) deleteMutation.mutate(c.id);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-rose-600 rounded-lg"
+                              title="Delete course"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 font-mono">View Only</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -532,7 +615,7 @@ export const CoursesPage: React.FC = () => {
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                   >
                     <option value="">All Branches / Non-specific</option>
-                    {branches.map((b) => (
+                    {modalBranches.map((b: Branch) => (
                       <option key={b.id} value={b.id}>
                         {b.name} ({b.code}) — {b.degree_name}
                       </option>
