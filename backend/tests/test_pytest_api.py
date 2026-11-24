@@ -44,6 +44,55 @@ class TestTimetableApiEndpoints:
         assert resp.data['allowed'] is True
         assert isinstance(resp.data['conflicts'], list)
 
+    def test_slots_availability_endpoint(self, api_client, admin_user, timetable_environment, facilities):
+        """Test POST /api/timetable/slots-availability returns availability for all 40 weekly slots."""
+        api_client.force_authenticate(user=admin_user)
+        version = timetable_environment['version']
+        asgn = timetable_environment['asgn_dbms']
+        room = facilities['classroom1']
+
+        resp = api_client.post('/api/timetable/slots-availability', {
+            'schedule_version_id': version.id,
+            'teaching_assignment_id': asgn.id,
+            'room_id': room.id,
+            'duration_slots': 1,
+        }, format='json')
+
+        assert resp.status_code == status.HTTP_200_OK
+        assert 'slots' in resp.data
+        slots = resp.data['slots']
+        assert len(slots) == 40  # 5 weekdays * 8 slots
+
+        # Verify weekday 1, slot 1 is initially available
+        slot_w1_s1 = next(s for s in slots if s['weekday'] == 1 and s['slot_no'] == 1)
+        assert slot_w1_s1['allowed'] is True
+        assert slot_w1_s1['status'] == 'AVAILABLE'
+
+        # Now place a meeting at weekday 1, slot 1
+        save_resp = api_client.post('/api/timetable/meetings/', {
+            'schedule_version_id': version.id,
+            'teaching_assignment_id': asgn.id,
+            'weekday': 1,
+            'start_slot': 1,
+            'duration_slots': 1,
+            'room_id': room.id,
+        }, format='json')
+        assert save_resp.status_code == status.HTTP_201_CREATED
+
+        # Re-check slot availability
+        resp2 = api_client.post('/api/timetable/slots-availability', {
+            'schedule_version_id': version.id,
+            'teaching_assignment_id': asgn.id,
+            'room_id': room.id,
+            'duration_slots': 1,
+        }, format='json')
+        assert resp2.status_code == status.HTTP_200_OK
+        slots2 = resp2.data['slots']
+        slot_w1_s1_after = next(s for s in slots2 if s['weekday'] == 1 and s['slot_no'] == 1)
+        assert slot_w1_s1_after['allowed'] is False
+        assert slot_w1_s1_after['status'] == 'BUSY'
+        assert slot_w1_s1_after['conflict_type'] in ['ROOM_BUSY', 'PROFESSOR_BUSY', 'COHORT_BUSY']
+
     def test_role_based_generation_permissions(
         self, api_client, professor_user, coordinator_user, admin_user, timetable_environment, academic_setup
     ):

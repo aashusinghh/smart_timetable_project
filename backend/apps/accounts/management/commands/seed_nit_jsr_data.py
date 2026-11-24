@@ -131,7 +131,7 @@ class Command(BaseCommand):
             ('MECH_BLK', 'ME-LH1', 'Mechanical Lecture Hall 1', Room.RoomType.CLASSROOM, 65, 1, True),
             ('MECH_BLK', 'ME-CAD', 'CAD / CAM Simulation Lab', Room.RoomType.COMPUTER_LAB, 40, 2, True),
             ('CIVIL_BLK', 'CE-LH1', 'Civil Lecture Hall 1', Room.RoomType.CLASSROOM, 65, 1, True),
-            ('CIVIL_BLK', 'CE-LAB1', 'Material Testing & Survey Lab', Room.RoomType.CLASSROOM, 40, 1, True),
+            ('CIVIL_BLK', 'CE-LAB1', 'Material Testing & Survey Lab', Room.RoomType.COMPUTER_LAB, 40, 1, True),
             ('CENTRAL_AUD', 'AUD-MAIN', 'NIT JSR Main Auditorium', Room.RoomType.SEMINAR_HALL, 250, 1, True),
         ]
         for b_code, r_no, r_name, r_type, cap, fl, proj in rooms_data:
@@ -248,6 +248,7 @@ class Command(BaseCommand):
             ('kpatel.cse@nitjsr.ac.in', 'Dr. K. Patel', 'NITJSR-CSE-007', 'CSE', 'Assistant Professor', 6, None),
             ('asingh.cse@nitjsr.ac.in', 'Dr. Abhimanyu Singh', 'NITJSR-CSE-008', 'CSE', 'Assistant Professor', 6, None),
             ('sroy.cse@nitjsr.ac.in', 'Dr. Sudip Roy', 'NITJSR-CSE-009', 'CSE', 'Associate Professor', 6, None),
+            ('professor@university.edu', 'Dr. Sunita Sharma', 'NITJSR-CSE-010', 'CSE', 'Professor', 6, None),
 
             # ECE
             ('kksingh.ece@nitjsr.ac.in', 'Dr. K. K. Singh', 'NITJSR-ECE-001', 'ECE', 'Professor & HOD', 5, 'BTECH_ECE'),
@@ -360,14 +361,17 @@ class Command(BaseCommand):
             )
             year_obj_map[y_name] = ay
 
+            # Format y_name like '2026-27' to '2026 - 2027'
+            full_y = f"20{y_name[:2]} - 20{y_name[3:]}" if len(y_name) == 5 else y_name
+
             # Odd Semester
             odd_start = s_date
             odd_end = date(s_date.year, 12, 22)
             ot, _ = AcademicTerm.objects.update_or_create(
                 academic_year=ay,
-                name=f'Odd Semester {y_name} (Autumn)',
+                term_type=AcademicTerm.TermType.ODD,
                 defaults={
-                    'term_type': AcademicTerm.TermType.ODD,
+                    'name': f'Odd Semester {full_y}',
                     'start_date': odd_start,
                     'end_date': odd_end,
                     'is_active': True,
@@ -380,9 +384,9 @@ class Command(BaseCommand):
             even_end = e_date
             et, _ = AcademicTerm.objects.update_or_create(
                 academic_year=ay,
-                name=f'Even Semester {y_name} (Spring)',
+                term_type=AcademicTerm.TermType.EVEN,
                 defaults={
-                    'term_type': AcademicTerm.TermType.EVEN,
+                    'name': f'Even Semester {full_y}',
                     'start_date': even_start,
                     'end_date': even_end,
                     'is_active': True,
@@ -636,7 +640,7 @@ class Command(BaseCommand):
                     ('CE201', 'Solid Mechanics for Structures', 4, 'THEORY', 'CE', 'CLASSROOM', 3, 1),
                     ('CE202', 'Fluid Mechanics and Hydraulics', 4, 'THEORY', 'CE', 'CLASSROOM', 3, 1),
                     ('CE203', 'Surveying Techniques - I', 3, 'THEORY', 'CE', 'CLASSROOM', 3, 1),
-                    ('CE204', 'Surveying Laboratory - I', 2, 'LAB', 'CE', 'CLASSROOM', 1, 3),
+                    ('CE204', 'Surveying Laboratory - I', 2, 'LAB', 'CE', 'COMPUTER_LAB', 1, 3),
                 ],
                 4: [
                     ('CE251', 'Structural Analysis - I', 4, 'THEORY', 'CE', 'CLASSROOM', 3, 1),
@@ -887,11 +891,15 @@ class Command(BaseCommand):
                     dept_obj = dept_map[dept_code]
 
                     # Assign a professor from the subject department
-                    pool = dept_profs.get(dept_code) or dept_profs['CSE']
-                    curr_idx = prof_rotation_idx.get(dept_code, 0)
-                    assigned_email = pool[curr_idx % len(pool)]
-                    prof_rotation_idx[dept_code] = curr_idx + 1
-                    assigned_prof_user = prof_user_map[assigned_email]
+                    sunita_portfolio = ['CS204', 'CS206', 'CS303', 'CS306', 'CS252', 'CS255']
+                    if c_code in sunita_portfolio and 'professor@university.edu' in prof_user_map:
+                        assigned_prof_user = prof_user_map['professor@university.edu']
+                    else:
+                        pool = dept_profs.get(dept_code) or dept_profs['CSE']
+                        curr_idx = prof_rotation_idx.get(dept_code, 0)
+                        assigned_email = pool[curr_idx % len(pool)]
+                        prof_rotation_idx[dept_code] = curr_idx + 1
+                        assigned_prof_user = prof_user_map[assigned_email]
 
                     # Create Course
                     course, _ = Course.objects.update_or_create(
@@ -1044,9 +1052,9 @@ class Command(BaseCommand):
             term=current_odd_term,
             version_no=1,
             defaults={
-                'name': 'NIT JSR Academic Master Schedule (2026-27 Autumn)',
+                'name': 'NIT JSR Academic Master Schedule (Odd Semester 2026 - 2027)',
                 'status': ScheduleVersion.Status.PUBLISHED,
-                'notes': 'Official published timetable for Autumn Semester 2026-27 approved by Academic Administration.',
+                'notes': 'Official published timetable for Odd Semester 2026 - 2027 approved by Academic Administration.',
                 'created_by': admin_user,
             }
         )
@@ -1057,9 +1065,9 @@ class Command(BaseCommand):
             term=term_2025_odd,
             version_no=1,
             defaults={
-                'name': 'NIT JSR Academic Master Schedule (2025-26 Autumn)',
+                'name': 'NIT JSR Academic Master Schedule (Odd Semester 2025 - 2026)',
                 'status': ScheduleVersion.Status.PUBLISHED,
-                'notes': 'Historical archived published timetable for Autumn Semester 2025-26.',
+                'notes': 'Historical archived published timetable for Odd Semester 2025 - 2026.',
                 'created_by': admin_user,
             }
         )
@@ -1069,9 +1077,9 @@ class Command(BaseCommand):
             term=current_even_term,
             version_no=1,
             defaults={
-                'name': 'NIT JSR Spring 2026-27 Planning Draft',
+                'name': 'NIT JSR Academic Schedule (Even Semester 2026 - 2027)',
                 'status': ScheduleVersion.Status.DRAFT,
-                'notes': 'Working draft schedule for Spring Semester 2026-27.',
+                'notes': 'Working draft schedule for Even Semester 2026 - 2027.',
                 'created_by': admin_user,
             }
         )
@@ -1098,6 +1106,12 @@ class Command(BaseCommand):
             ('CS203', 'BTECH_CSE', 3, 'A', None, 3, 4, 1, 'LH-101'),
             ('CS204', 'BTECH_CSE', 3, 'A', None, 1, 1, 1, 'LH-102'),
             ('CS204', 'BTECH_CSE', 3, 'A', None, 2, 2, 1, 'LH-102'),
+            ('CS204', 'BTECH_CSE', 3, 'A', None, 4, 1, 1, 'LH-102'),
+            ('CS206', 'BTECH_CSE', 3, 'A', '3A-L1', 4, 5, 3, 'CC-LAB-1'),
+            ('CS303', 'BTECH_CSE', 5, 'A', None, 1, 2, 1, 'LH-101'),
+            ('CS303', 'BTECH_CSE', 5, 'A', None, 3, 2, 1, 'LH-101'),
+            ('CS303', 'BTECH_CSE', 5, 'A', None, 4, 2, 1, 'LH-101'),
+            ('CS306', 'BTECH_CSE', 5, 'A', '5A-L1', 5, 5, 3, 'CS-LAB1'),
             ('EC201', 'BTECH_ECE', 3, 'A', None, 1, 3, 1, 'EC-LH1'),
             ('EC201', 'BTECH_ECE', 3, 'A', None, 2, 3, 1, 'EC-LH1'),
             ('EC202', 'BTECH_ECE', 3, 'A', None, 1, 4, 1, 'EC-LH1'),

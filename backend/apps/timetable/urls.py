@@ -4,6 +4,7 @@ from .views import (
     ScheduleVersionViewSet,
     ScheduledMeetingViewSet,
     ValidatePlacementView,
+    SlotsAvailabilityView,
     TimetableGridView,
     AvailableRoomsView,
     BatchUpdateMeetingsView,
@@ -26,6 +27,7 @@ router.register(r'date-overrides', DateOverrideViewSet, basename='date-override'
 
 urlpatterns = [
     path('timetable/validate', ValidatePlacementView.as_view(), name='timetable-validate'),
+    path('timetable/slots-availability', SlotsAvailabilityView.as_view(), name='slots-availability'),
     path('timetable/<int:version_id>/grid', TimetableGridView.as_view(), name='timetable-grid'),
     path('timetable/<int:version_id>/available-rooms', AvailableRoomsView.as_view(), name='available-rooms'),
     path('timetable/batch-update', BatchUpdateMeetingsView.as_view(), name='timetable-batch-update'),

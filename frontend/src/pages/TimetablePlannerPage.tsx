@@ -55,6 +55,7 @@ import {
   AcademicTerm,
   Room,
   AutoScheduleProposal,
+  SlotAvailabilityItem,
 } from '../types';
 import { pickCurrentTerm } from '../utils/terms';
 
@@ -498,6 +499,83 @@ export const TimetablePlannerPage: React.FC = () => {
     enabled: !!activeCohort,
   });
 
+  // Simultaneous All-Slots Availability Query
+  // Immediately checks all 40 slots across the weekly grid when a subject & room are active
+  const {
+    data: slotsAvailabilityData,
+    isLoading: isSlotsAvailabilityLoading,
+  } = useQuery({
+    queryKey: [
+      'slots-availability',
+      activeVersion?.id,
+      activeAssignment?.id,
+      selectedRoomId,
+      activeOffering?.id,
+    ],
+    queryFn: () =>
+      activeVersion && activeAssignment && selectedRoomId
+        ? timetableService.getSlotsAvailability({
+            schedule_version_id: activeVersion.id,
+            teaching_assignment_id: activeAssignment.id,
+            room_id: selectedRoomId,
+            duration_slots: activeOffering?.course_type === 'LAB' ? 3 : 1,
+          })
+        : null,
+    enabled: !!activeVersion?.id && !!activeAssignment?.id && !!selectedRoomId,
+  });
+
+  const slotsAvailabilityMap = useMemo(() => {
+    const map = new Map<string, SlotAvailabilityItem>();
+    if (!slotsAvailabilityData?.slots) return map;
+    slotsAvailabilityData.slots.forEach((item) => {
+      map.set(`${item.weekday}-${item.slot_no}`, item);
+    });
+    return map;
+  }, [slotsAvailabilityData]);
+
+  const availabilityCounts = useMemo(() => {
+    if (!slotsAvailabilityData?.slots) return null;
+    let available = 0;
+    let busy = 0;
+    slotsAvailabilityData.slots.forEach((s) => {
+      if (s.allowed) available++;
+      else busy++;
+    });
+    return { available, busy };
+  }, [slotsAvailabilityData]);
+
+  const getSlotConflictDisplay = (item?: SlotAvailabilityItem) => {
+    if (!item || item.allowed) return null;
+    switch (item.conflict_type) {
+      case 'ROOM_BUSY':
+        return { label: 'Room Busy', detail: `Room ${activeRoom?.room_no} occupied` };
+      case 'ROOM_UNAVAILABLE':
+        return { label: 'Room Blocked', detail: 'Maintenance / unavailable' };
+      case 'PROFESSOR_BUSY':
+        return { label: 'Teacher Busy', detail: 'Faculty scheduled elsewhere' };
+      case 'PROFESSOR_UNAVAILABLE':
+        return { label: 'Teacher Off', detail: 'Faculty on leave / unavailable' };
+      case 'COHORT_BUSY':
+        return { label: 'Batch Busy', detail: 'Class already scheduled' };
+      case 'GROUP_BUSY':
+        return { label: 'Group Busy', detail: 'Student group engaged' };
+      case 'LUNCH_CROSSING':
+        return { label: 'Lunch Break', detail: '12:30–14:00 Mandatory Break' };
+      case 'LAB_START_INVALID':
+        return { label: 'Invalid Slot', detail: '3h Lab must start at 1, 2, 5, or 6' };
+      case 'QUOTA_EXCEEDED':
+        return { label: 'Quota Met', detail: 'Weekly meetings limit reached' };
+      case 'ROOM_TYPE_INCOMPATIBLE':
+        return { label: 'Incompatible', detail: 'Lab room required' };
+      case 'CAPACITY_INSUFFICIENT':
+        return { label: 'Capacity Low', detail: 'Room too small for batch' };
+      case 'OUT_OF_BOUNDS':
+        return { label: 'Day Ended', detail: 'Extends past 18:00' };
+      default:
+        return { label: 'Busy', detail: item.message || 'Slot occupied' };
+    }
+  };
+
   // -------------------------------------------------------------
   // Mutations & Collision Handlers
   // -------------------------------------------------------------
@@ -561,6 +639,7 @@ export const TimetablePlannerPage: React.FC = () => {
     mutationFn: (data: any) => timetableService.saveMeeting(data),
     onSuccess: () => {
       refetchGrid();
+      queryClient.invalidateQueries({ queryKey: ['slots-availability'] });
       setActiveOffering(null);
       setActiveAssignment(null);
       setHoveredSlot(null);
@@ -579,6 +658,7 @@ export const TimetablePlannerPage: React.FC = () => {
     mutationFn: (id: number) => timetableService.deleteMeeting(id),
     onSuccess: () => {
       refetchGrid();
+      queryClient.invalidateQueries({ queryKey: ['slots-availability'] });
       setIsDetailModalOpen(false);
       setSelectedMeeting(null);
       setErrorMessage(null);
@@ -696,6 +776,7 @@ export const TimetablePlannerPage: React.FC = () => {
       setIsPreviewModalOpen(false);
       setSelectedProposal(null);
       refetchGrid();
+      queryClient.invalidateQueries({ queryKey: ['slots-availability'] });
       setSuccessToast('Schedule successfully applied to timetable!');
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err: any) {
@@ -766,6 +847,7 @@ export const TimetablePlannerPage: React.FC = () => {
       refetchGrid();
       queryClient.invalidateQueries({ queryKey: ['timetable-grid'] });
       queryClient.invalidateQueries({ queryKey: ['branch-timetable'] });
+      queryClient.invalidateQueries({ queryKey: ['slots-availability'] });
       setSuccessToast(
         res.deleted_count > 0
           ? `Successfully removed ${res.deleted_count} class(es) from the timetable!`
@@ -906,15 +988,11 @@ export const TimetablePlannerPage: React.FC = () => {
       return;
     }
 
-    // If this slot was validated on hover and not allowed (e.g. QUOTA_EXCEEDED), show conflict error without layout shift
-    if (
-      hoveredSlot?.weekday === weekday &&
-      hoveredSlot?.slot_no === slot_no &&
-      slotValidation &&
-      !slotValidation.allowed
-    ) {
+    // Check slot availability from full grid validation
+    const slotInfo = slotsAvailabilityMap.get(`${weekday}-${slot_no}`);
+    if (slotInfo && !slotInfo.allowed) {
       setErrorMessage(
-        slotValidation.conflicts[0]?.message || 'Cannot place class: constraint or quota conflict detected.'
+        slotInfo.message || 'Cannot place class: slot is busy or constraint conflict detected.'
       );
       return;
     }
@@ -1628,42 +1706,25 @@ export const TimetablePlannerPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Validation Hover Indicator: Fixed height & strict width bounds to prevent header layout shift */}
-            <div className="h-8 shrink-0 flex items-center justify-start sm:justify-end min-w-[210px] max-w-[260px] overflow-hidden">
-              {hoveredSlot && activeOffering ? (
-                <div className="flex items-center gap-2 text-xs min-w-0 max-w-full overflow-hidden">
-                  {isValidating ? (
-                    <span className="text-slate-400 flex items-center gap-1 font-medium whitespace-nowrap">
-                      <RefreshCw className="w-3 h-3 animate-spin shrink-0" /> Validating...
+            {/* Validation / Slots Availability Indicator */}
+            <div className="h-8 shrink-0 flex items-center justify-start sm:justify-end min-w-[210px] max-w-[340px] overflow-hidden">
+              {activeOffering ? (
+                isSlotsAvailabilityLoading ? (
+                  <span className="text-slate-400 flex items-center gap-1 font-medium text-xs whitespace-nowrap">
+                    <RefreshCw className="w-3 h-3 animate-spin shrink-0" /> Checking slot availability...
+                  </span>
+                ) : availabilityCounts ? (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="px-2.5 py-1 rounded font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1.5 whitespace-nowrap border border-emerald-300/60 dark:border-emerald-800">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      {availabilityCounts.available} Free
                     </span>
-                  ) : slotValidation?.allowed ? (
-                    <span className="px-2.5 py-1 rounded font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1 whitespace-nowrap">
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Allowed: Room {activeRoom?.room_no}
+                    <span className="px-2.5 py-1 rounded font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-1.5 whitespace-nowrap border border-rose-300/60 dark:border-rose-800">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      {availabilityCounts.busy} Busy
                     </span>
-                  ) : slotValidation && !slotValidation.allowed ? (
-                    <span
-                      className="px-2.5 py-1 rounded font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-1 min-w-0 max-w-full overflow-hidden"
-                      title={slotValidation.conflicts[0]?.message}
-                    >
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-600 dark:text-rose-400" />
-                      <span className="truncate">
-                        {slotValidation.conflicts[0]?.type === 'QUOTA_EXCEEDED'
-                          ? 'Quota Exceeded'
-                          : slotValidation.conflicts[0]?.type === 'ROOM_BUSY'
-                          ? 'Room Occupied'
-                          : slotValidation.conflicts[0]?.type === 'PROFESSOR_BUSY'
-                          ? 'Professor Busy'
-                          : slotValidation.conflicts[0]?.type === 'LUNCH_CROSSING'
-                          ? 'Lunch Break Crossing'
-                          : slotValidation.conflicts[0]?.type?.replace(/_/g, ' ') || 'Clash Detected'}
-                      </span>
-                    </span>
-                  ) : null}
-                </div>
-              ) : activeOffering ? (
-                <span className="text-xs text-slate-400 font-medium hidden sm:inline-block whitespace-nowrap">
-                  Hover slot to check room availability
-                </span>
+                  </div>
+                ) : null
               ) : null}
             </div>
           </div>
@@ -1733,18 +1794,33 @@ export const TimetablePlannerPage: React.FC = () => {
                           {/* 5 Day Cells for this slot */}
                           {WEEKDAYS.map((day) => {
                             const meeting = meetingsBySlot.get(`${day.id}-${slot.no}`);
+                            const slotAvailability = slotsAvailabilityMap.get(`${day.id}-${slot.no}`);
                             const isHovered =
                               hoveredSlot?.weekday === day.id && hoveredSlot?.slot_no === slot.no;
+                            const conflictInfo = getSlotConflictDisplay(slotAvailability);
 
-                            // Dynamic cell coloring based on hover validation state (neutral while validating)
                             let cellBg = 'bg-white dark:bg-slate-900';
-                            if (isHovered && activeOffering) {
-                              if (isValidating) {
-                                cellBg = 'bg-primary-50/30 dark:bg-primary-950/20';
-                              } else if (slotValidation?.allowed) {
-                                cellBg = 'bg-emerald-50/40 dark:bg-emerald-950/20';
-                              } else if (slotValidation && !slotValidation.allowed) {
-                                cellBg = 'bg-rose-50/40 dark:bg-rose-950/20';
+                            let cellBorder = 'border-slate-200 dark:border-slate-800';
+
+                            if (activeOffering && !meeting) {
+                              if (isSlotsAvailabilityLoading) {
+                                cellBg = 'bg-slate-50/50 dark:bg-slate-800/20';
+                              } else if (slotAvailability) {
+                                if (slotAvailability.allowed) {
+                                  cellBg = isHovered
+                                    ? 'bg-emerald-100/90 dark:bg-emerald-900/50'
+                                    : 'bg-emerald-50/70 dark:bg-emerald-950/30';
+                                  cellBorder = isHovered
+                                    ? 'border-emerald-500 dark:border-emerald-600 ring-1 ring-inset ring-emerald-500'
+                                    : 'border-emerald-200/90 dark:border-emerald-800/70';
+                                } else {
+                                  cellBg = isHovered
+                                    ? 'bg-rose-100/80 dark:bg-rose-900/40'
+                                    : 'bg-rose-50/60 dark:bg-rose-950/25';
+                                  cellBorder = isHovered
+                                    ? 'border-rose-400 dark:border-rose-700 ring-1 ring-inset ring-rose-400'
+                                    : 'border-rose-200/90 dark:border-rose-900/60';
+                                }
                               }
                             } else if (!activeOffering && !meeting) {
                               cellBg = 'bg-white dark:bg-slate-900 hover:bg-slate-50/70 dark:hover:bg-slate-800/40';
@@ -1753,12 +1829,18 @@ export const TimetablePlannerPage: React.FC = () => {
                             return (
                               <td
                                 key={day.id}
-                                onMouseEnter={() => validateSlotHover(day.id, slot.no)}
-                                onMouseLeave={handleSlotMouseLeave}
+                                onMouseEnter={() => setHoveredSlot({ weekday: day.id, slot_no: slot.no })}
+                                onMouseLeave={() => setHoveredSlot(null)}
                                 onClick={() => handleSlotClick(day.id, slot.no)}
                                 style={{ width: 'calc((100% - 6rem) / 5)', maxWidth: 'calc((100% - 6rem) / 5)' }}
-                                className={`p-1.5 border border-slate-200 dark:border-slate-800 h-[92px] max-h-[92px] box-border align-top relative overflow-hidden transition-colors duration-150 ${
-                                  activeOffering ? 'cursor-pointer' : meeting ? 'cursor-pointer' : 'cursor-default'
+                                className={`p-1.5 border ${cellBorder} h-[92px] max-h-[92px] box-border align-top relative overflow-hidden transition-colors duration-150 ${
+                                  meeting
+                                    ? 'cursor-pointer'
+                                    : activeOffering
+                                    ? slotAvailability?.allowed
+                                      ? 'cursor-pointer'
+                                      : 'cursor-not-allowed'
+                                    : 'cursor-default'
                                 } ${cellBg}`}
                               >
                                 {meeting ? (
@@ -1790,62 +1872,52 @@ export const TimetablePlannerPage: React.FC = () => {
                                       )}
                                     </div>
                                   </div>
-                                ) : (
-                                  <div
-                                    className={`w-full h-full max-w-full min-w-0 box-border rounded flex flex-col items-center justify-center p-1 overflow-hidden border transition-colors duration-150 ${
-                                      isHovered && activeOffering
-                                        ? isValidating
-                                          ? 'bg-primary-50/40 dark:bg-primary-950/30 border-dashed border-primary-300 dark:border-primary-700/60'
-                                          : slotValidation?.allowed
-                                          ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-dashed border-emerald-300 dark:border-emerald-700/60'
-                                          : slotValidation && !slotValidation.allowed
-                                          ? 'bg-rose-50/70 dark:bg-rose-950/40 border-dashed border-rose-300 dark:border-rose-800/80'
-                                          : 'border-transparent'
-                                        : 'border-transparent'
-                                    }`}
-                                  >
-                                    {isHovered && activeOffering ? (
-                                      isValidating ? (
-                                        <div className="w-full max-w-full min-w-0 flex flex-col items-center justify-center text-center overflow-hidden">
-                                          <span className="text-slate-400 text-[11px] font-medium flex items-center justify-center gap-1 min-w-0 max-w-full">
-                                            <RefreshCw className="w-3 h-3 animate-spin shrink-0" />
-                                            <span className="truncate">Checking...</span>
+                                ) : activeOffering ? (
+                                  <div className="w-full h-full max-w-full min-w-0 box-border rounded p-1 flex flex-col justify-between overflow-hidden select-none">
+                                    {isSlotsAvailabilityLoading ? (
+                                      <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                                        <RefreshCw className="w-3.5 h-3.5 text-slate-400 animate-spin" />
+                                        <span className="text-[9px] text-slate-400 mt-1">Checking...</span>
+                                      </div>
+                                    ) : slotAvailability?.allowed ? (
+                                      <div className="w-full h-full flex flex-col justify-between">
+                                        <div className="flex items-center justify-between gap-1 min-w-0">
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700/60 shadow-2xs">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            <span>Available</span>
+                                          </span>
+                                          <span className="text-[9px] font-mono font-semibold text-emerald-700/90 dark:text-emerald-400/90 truncate">
+                                            R-{activeRoom?.room_no}
                                           </span>
                                         </div>
-                                      ) : slotValidation?.allowed ? (
-                                        <div className="w-full max-w-full min-w-0 flex flex-col items-center justify-center text-center overflow-hidden">
-                                          <div className="w-full max-w-full min-w-0 flex items-center justify-center gap-1 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] leading-tight">
-                                            <Plus className="w-3.5 h-3.5 shrink-0" />
-                                            <span className="truncate">Place Room {activeRoom?.room_no}</span>
-                                          </div>
-                                          <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 block truncate w-full max-w-full mt-0.5 leading-tight">
-                                            Click to assign
+                                        <div className="pt-0.5 text-center">
+                                          <span className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300 block truncate">
+                                            {isHovered ? '+ Click to Place' : 'Free Slot'}
                                           </span>
                                         </div>
-                                      ) : slotValidation && !slotValidation.allowed ? (
-                                        <div
-                                          className="w-full max-w-full min-w-0 flex flex-col items-center justify-center text-center overflow-hidden select-none px-0.5"
-                                          title={
-                                            slotValidation.conflicts[0]?.message ||
-                                            (slotValidation.conflicts[0]?.type === 'ROOM_BUSY'
-                                              ? `Room ${activeRoom?.room_no} is already occupied at this slot`
-                                              : slotValidation.conflicts[0]?.type === 'PROFESSOR_BUSY'
-                                              ? `Professor is already scheduled at this slot`
-                                              : 'Slot not available')
-                                          }
-                                        >
-                                          <div className="w-full max-w-full min-w-0 flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400 font-semibold text-[10px] leading-tight overflow-hidden">
-                                            <AlertTriangle className="w-3 h-3 shrink-0 text-rose-500 flex-none" />
-                                            <span className="truncate tracking-tight uppercase font-mono">
-                                              {slotValidation.conflicts[0]?.type || 'Clash'}
-                                            </span>
-                                          </div>
-                                          <span className="text-[10px] text-rose-500/90 dark:text-rose-400/90 block truncate w-full max-w-full mt-0.5 leading-tight font-medium">
-                                            Not available
+                                      </div>
+                                    ) : slotAvailability && !slotAvailability.allowed ? (
+                                      <div
+                                        className="w-full h-full flex flex-col justify-between"
+                                        title={slotAvailability.message}
+                                      >
+                                        <div className="flex items-center justify-between gap-1 min-w-0">
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300/80 dark:border-rose-800/60 shadow-2xs max-w-full">
+                                            <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-400 shrink-0" />
+                                            <span className="truncate">{conflictInfo?.label || 'Busy'}</span>
                                           </span>
                                         </div>
-                                      ) : null
+                                        <div className="pt-0.5 text-center">
+                                          <span className="text-[9px] text-rose-600/90 dark:text-rose-400/90 font-medium block truncate">
+                                            {conflictInfo?.detail || 'Occupied'}
+                                          </span>
+                                        </div>
+                                      </div>
                                     ) : null}
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-700 text-[10px] font-mono select-none">
+                                    —
                                   </div>
                                 )}
                               </td>
