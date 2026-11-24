@@ -35,6 +35,7 @@ class TimetableValidator:
         instruction_group_ids: Optional[List[int]] = None,
         exclude_meeting_id: Optional[int] = None,
         user: Optional[User] = None,
+        check_permissions: bool = True,
     ) -> Dict[str, Any]:
         conflicts = []
         warnings = []
@@ -45,12 +46,17 @@ class TimetableValidator:
         course = curriculum_item.course
         delivery_rule = getattr(course, 'delivery_rule', None)
 
-        # 1. User Permission Check
-        if user and not user.is_superuser and not user.has_role(Role.Code.SUPER_ADMIN):
-            has_branch_coord = user.role_assignments.filter(
-                role__code=Role.Code.BRANCH_COORDINATOR,
-                branch=cohort.branch
-            ).exists()
+        # 1. User Permission Check (Skipped during system/sweep validation)
+        if check_permissions and user and not user.is_superuser and not user.has_role(Role.Code.SUPER_ADMIN):
+            coord_branch_ids = user.get_coordinated_branch_ids() if hasattr(user, 'get_coordinated_branch_ids') else None
+            has_branch_coord = (
+                cohort.branch_id in coord_branch_ids
+                if coord_branch_ids is not None
+                else user.role_assignments.filter(
+                    role__code=Role.Code.BRANCH_COORDINATOR,
+                    branch=cohort.branch
+                ).exists()
+            )
             if not has_branch_coord:
                 conflicts.append({
                     'type': 'PERMISSION_DENIED',
@@ -58,27 +64,28 @@ class TimetableValidator:
                     'message': f"You do not have coordinator permissions for branch {cohort.branch.code}."
                 })
 
-        # 2. Schedule Version Status Check
-        if schedule_version.status == ScheduleVersion.Status.PUBLISHED:
-            conflicts.append({
-                'type': 'VERSION_LOCKED',
-                'slot': start_slot,
-                'message': "Schedule version is PUBLISHED and cannot be modified. Create a new draft for updates."
-            })
-        elif schedule_version.status == ScheduleVersion.Status.ARCHIVED:
-            conflicts.append({
-                'type': 'VERSION_LOCKED',
-                'slot': start_slot,
-                'message': "Schedule version is ARCHIVED and cannot be modified."
-            })
-        elif schedule_version.status == ScheduleVersion.Status.UNDER_REVIEW:
-            is_admin = user and (user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN))
-            if not is_admin:
+        # 2. Schedule Version Status Check (Edit-lock for user modifications)
+        if check_permissions and user:
+            is_admin = user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN)
+            if schedule_version.status == ScheduleVersion.Status.PUBLISHED:
                 conflicts.append({
-                    'type': 'VERSION_UNDER_REVIEW',
+                    'type': 'VERSION_LOCKED',
                     'slot': start_slot,
-                    'message': "Schedule version is currently UNDER_REVIEW by administrators and cannot be edited by coordinators."
+                    'message': "Schedule version is PUBLISHED and cannot be modified. Create a new draft for updates."
                 })
+            elif schedule_version.status == ScheduleVersion.Status.ARCHIVED:
+                conflicts.append({
+                    'type': 'VERSION_LOCKED',
+                    'slot': start_slot,
+                    'message': "Schedule version is ARCHIVED and cannot be modified."
+                })
+            elif schedule_version.status == ScheduleVersion.Status.UNDER_REVIEW:
+                if not is_admin:
+                    conflicts.append({
+                        'type': 'VERSION_UNDER_REVIEW',
+                        'slot': start_slot,
+                        'message': "Schedule version is currently UNDER_REVIEW by administrators and cannot be edited by coordinators."
+                    })
 
         # 3. Term Consistency Check
         if offering.term_id != schedule_version.term_id:

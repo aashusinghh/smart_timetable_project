@@ -107,12 +107,8 @@ export const ImportPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>Bulk Data Ingestion</span>
-        </div>
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">CSV Data Import</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Upload CSV files to batch-import curriculum structures or faculty members with row-level error validation.
         </p>
       </div>

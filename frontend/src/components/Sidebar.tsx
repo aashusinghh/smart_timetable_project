@@ -78,10 +78,10 @@ export const Sidebar: React.FC = () => {
           </nav>
         </div>
 
-        {/* Timetable Engine & Views (Phases 3 & 4) */}
+        {/* Timetable Engine & Views */}
         <div>
           <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
-            Schedules & Live Ops
+            Schedules & Operations
           </p>
           <nav className="space-y-1">
             {(isSuperAdmin || isCoordinator) && (
@@ -174,11 +174,11 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
-        {/* Phase 2: Faculty & Bulk Data */}
+        {/* Faculty & Bulk Data */}
         {isSuperAdmin && (
           <div>
             <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
-              Faculty & Ingestion
+              Faculty & Imports
             </p>
             <nav className="space-y-1">
               <NavLink to="/professors" className={navLinkClass}>
@@ -196,7 +196,7 @@ export const Sidebar: React.FC = () => {
         {/* System & API docs */}
         <div>
           <p className="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
-            Developer Docs
+            Documentation
           </p>
           <nav className="space-y-1">
             <a

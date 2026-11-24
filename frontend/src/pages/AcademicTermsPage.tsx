@@ -134,13 +134,9 @@ export const AcademicTermsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Academic Calendar & Slots</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Academic Calendar & Time Slots</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Configure academic years, semester terms, and inspect university daily scheduling slots.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Configure academic years, semester terms, and standard university scheduling slots.
           </p>
         </div>
         <div className="flex items-center gap-2">

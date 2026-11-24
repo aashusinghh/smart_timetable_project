@@ -202,13 +202,9 @@ export const ProfessorsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Faculty Management</span>
-          </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Professors & Faculty</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Manage university faculty profiles, daily teaching limits, department affiliations, and unavailable slots.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Manage faculty profiles, daily teaching limits, department affiliations, and unavailable slots.
           </p>
         </div>
         <button

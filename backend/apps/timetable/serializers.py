@@ -144,3 +144,15 @@ class DateOverrideSerializer(serializers.ModelSerializer):
             'original_date', 'new_date', 'new_start_slot', 'new_room', 'new_room_no',
             'status', 'status_display', 'reason', 'created_by_email', 'created_at', 'updated_at'
         ]
+
+
+class ClearTimetableRequestSerializer(serializers.Serializer):
+    schedule_version_id = serializers.IntegerField(required=False, allow_null=True)
+    term_id = serializers.IntegerField(required=False, allow_null=True)
+    department_id = serializers.IntegerField(required=False, allow_null=True)
+    semester_no = serializers.IntegerField(required=False, allow_null=True)
+    branch_id = serializers.IntegerField(required=False, allow_null=True)
+    cohort_id = serializers.IntegerField(required=False, allow_null=True)
+    clear_all = serializers.BooleanField(required=False, default=False)
+
+

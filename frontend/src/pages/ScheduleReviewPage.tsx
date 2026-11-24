@@ -82,13 +82,9 @@ export const ScheduleReviewPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 mb-2">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Administrative Publication Desk</span>
-        </div>
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Schedule Review & Publication</h1>
-        <p className="text-sm text-slate-500">
-          Verify global university timetable coverage, inspect constraint sweeps, and officially publish semester schedules.
+        <p className="text-sm text-slate-500 mt-1">
+          Verify timetable coverage, inspect constraint checks, and publish semester schedules.
         </p>
       </div>
 
@@ -180,14 +176,14 @@ export const ScheduleReviewPage: React.FC = () => {
                 {isSweeping ? (
                   <div className="p-8 text-center text-xs text-slate-400">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-500" />
-                    Running authoritative conflict validation across all branch meetings...
+                    Running conflict validation across all branch meetings...
                   </div>
                 ) : sweepResult?.valid ? (
                   <div className="p-5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold text-sm text-emerald-900 dark:text-emerald-200">
-                        Zero Collisions Detected — Ready to Publish
+                        No Collisions Detected — Ready to Publish
                       </h3>
                       <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
                         All professor schedules, room capacities, lunch breaks, and student group continuous lab sessions satisfy all institutional constraints.

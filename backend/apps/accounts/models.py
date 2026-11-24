@@ -92,6 +92,45 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True
         return self.role_assignments.filter(role__code=role_code).exists()
 
+    def is_coordinator_only(self):
+        if self.is_superuser or self.has_role(Role.Code.SUPER_ADMIN):
+            return False
+        if self.has_role(Role.Code.BRANCH_COORDINATOR):
+            has_assigned_branch = self.role_assignments.filter(
+                role__code=Role.Code.BRANCH_COORDINATOR,
+                branch__isnull=False
+            ).exists()
+            has_dept_profile = hasattr(self, 'professor_profile') and bool(self.professor_profile and self.professor_profile.department_id)
+            return has_assigned_branch or has_dept_profile
+        return False
+
+    def get_coordinated_branch_ids(self):
+        """Returns list of branch IDs this user is authorized to coordinate."""
+        if self.is_superuser or self.has_role(Role.Code.SUPER_ADMIN):
+            return None  # Unrestricted for Super Admins
+
+        branch_ids = list(
+            self.role_assignments.filter(
+                role__code=Role.Code.BRANCH_COORDINATOR,
+                branch__isnull=False
+            ).values_list('branch_id', flat=True).distinct()
+        )
+        if branch_ids:
+            return branch_ids
+
+        if self.role_assignments.filter(role__code=Role.Code.BRANCH_COORDINATOR).exists():
+            if hasattr(self, 'professor_profile') and self.professor_profile and self.professor_profile.department_id:
+                from apps.academics.models import Branch
+                return list(
+                    Branch.objects.filter(
+                        department_id=self.professor_profile.department_id
+                    ).values_list('id', flat=True)
+                )
+            # If coordinator role was created with branch=None and no dept profile (e.g. unconstrained tests)
+            return None
+
+        return []
+
 
 class UserRoleAssignment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='role_assignments')

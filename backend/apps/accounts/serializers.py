@@ -14,7 +14,7 @@ class RoleSerializer(serializers.ModelSerializer):
 class RoleAssignmentBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ['id', 'code', 'name', 'degree_name']
+        fields = ['id', 'code', 'name', 'degree_name', 'department']
 
 
 class UserRoleAssignmentSerializer(serializers.ModelSerializer):

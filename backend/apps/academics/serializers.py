@@ -247,6 +247,9 @@ class CourseOfferingSerializer(serializers.ModelSerializer):
     semester_no = serializers.IntegerField(source='curriculum_item.semester_no', read_only=True)
     branch_id = serializers.IntegerField(source='cohort.branch_id', read_only=True)
     assignments_count = serializers.IntegerField(source='teaching_assignments.count', read_only=True)
+    professor_id = serializers.SerializerMethodField()
+    professor_name = serializers.SerializerMethodField()
+    teaching_assignment_id = serializers.SerializerMethodField()
 
     class Meta:
         model = CourseOffering
@@ -254,8 +257,29 @@ class CourseOfferingSerializer(serializers.ModelSerializer):
             'id', 'term', 'term_name', 'cohort', 'cohort_str',
             'curriculum_item', 'course_code', 'course_name', 'course_type', 'course_credit',
             'semester_no', 'branch_id',
+            'professor_id', 'professor_name', 'teaching_assignment_id',
             'assignments_count', 'is_active', 'created_at', 'updated_at'
         ]
+
+    def get_teaching_assignment_id(self, obj):
+        ta = obj.teaching_assignments.filter(is_active=True).first()
+        return ta.id if ta else None
+
+    def get_professor_id(self, obj):
+        ta = obj.teaching_assignments.filter(is_active=True).first()
+        if ta and ta.professor_id:
+            return ta.professor_id
+        if obj.curriculum_item and obj.curriculum_item.course and obj.curriculum_item.course.professor_id:
+            return obj.curriculum_item.course.professor_id
+        return None
+
+    def get_professor_name(self, obj):
+        ta = obj.teaching_assignments.filter(is_active=True).first()
+        if ta and ta.professor:
+            return ta.professor.full_name
+        if obj.curriculum_item and obj.curriculum_item.course and obj.curriculum_item.course.professor:
+            return obj.curriculum_item.course.professor.full_name
+        return None
 
     def validate(self, data):
         term = data.get('term') or getattr(self.instance, 'term', None)

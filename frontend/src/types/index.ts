@@ -12,6 +12,7 @@ export interface BranchSummary {
   code: string;
   name: string;
   degree_name: string;
+  department?: number;
 }
 
 export interface DepartmentSummary {
@@ -281,6 +282,9 @@ export interface CourseOffering {
   course_credit?: number;
   semester_no?: number;
   branch_id?: number;
+  professor_id?: number;
+  professor_name?: string;
+  teaching_assignment_id?: number;
   assignments_count: number;
   is_active: boolean;
   created_at: string;
@@ -528,6 +532,9 @@ export interface BranchTimetableResponse {
   branch_code: string;
   branch_name: string;
   schedule_version_id?: number | null;
+  schedule_status?: string | null;
+  is_published?: boolean;
+  version_name?: string | null;
   meetings: ScheduledMeeting[];
 }
 

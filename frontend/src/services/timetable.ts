@@ -43,6 +43,11 @@ export const timetableService = {
     return res.data;
   },
 
+  unpublishSchedule: async (versionId: number): Promise<ScheduleVersion> => {
+    const res = await api.post<ScheduleVersion>(`/timetable/versions/${versionId}/unpublish/`);
+    return res.data;
+  },
+
   validateSweep: async (versionId: number): Promise<ValidationSweepResponse> => {
     const res = await api.get<ValidationSweepResponse>(`/timetable/versions/${versionId}/validate-sweep/`);
     return res.data;
@@ -119,7 +124,7 @@ export const timetableService = {
 
   getBranchTimetable: async (
     branchId: number,
-    params?: { term_id?: number; cohort_id?: number; semester_no?: number }
+    params?: { term_id?: number; cohort_id?: number; semester_no?: number; published_only?: boolean }
   ): Promise<BranchTimetableResponse> => {
     const res = await api.get<BranchTimetableResponse>(`/branches/${branchId}/timetable/`, { params });
     return res.data;
@@ -154,6 +159,20 @@ export const timetableService = {
 
   deleteDateOverride: async (id: number): Promise<void> => {
     await api.delete(`/date-overrides/${id}/`);
+  },
+
+  // Clear Timetable for Department and Semester or Entire Schedule
+  clearMeetings: async (params: {
+    schedule_version_id?: number;
+    term_id?: number;
+    department_id?: number;
+    semester_no?: number;
+    branch_id?: number;
+    cohort_id?: number;
+    clear_all?: boolean;
+  }): Promise<{ message: string; deleted_count: number }> => {
+    const res = await api.post<{ message: string; deleted_count: number }>('/timetable/clear', params);
+    return res.data;
   },
 
   // Audit Logs

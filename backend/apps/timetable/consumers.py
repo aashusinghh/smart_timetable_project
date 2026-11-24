@@ -20,30 +20,37 @@ class TimetableConsumer(AsyncJsonWebsocketConsumer):
 
         self.room_group_name = f"timetable_{self.version_id}"
 
-        # Join the timetable version room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        # Join the timetable version room group if channel layer is available
+        if self.channel_layer:
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
 
         await self.accept()
         logger.info(f"WebSocket client connected to {self.room_group_name}")
 
         # Send initial connection confirmation
-        await self.send_json({
-            'type': 'connection.established',
-            'version_id': int(self.version_id),
-            'message': f'Connected to live sync for timetable version {self.version_id}',
-        })
+        try:
+            await self.send_json({
+                'type': 'connection.established',
+                'version_id': int(self.version_id),
+                'message': f'Connected to live sync for timetable version {self.version_id}',
+            })
+        except Exception as e:
+            logger.debug(f"Could not send connection confirmation: {e}")
 
     async def disconnect(self, close_code):
         # Leave the room group
-        if hasattr(self, 'room_group_name'):
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-            logger.info(f"WebSocket client disconnected from {self.room_group_name}")
+        if hasattr(self, 'room_group_name') and self.channel_layer:
+            try:
+                await self.channel_layer.group_discard(
+                    self.room_group_name,
+                    self.channel_name
+                )
+            except Exception as e:
+                logger.debug(f"Could not discard from group on disconnect: {e}")
+            logger.info(f"WebSocket client disconnected from {self.room_group_name} (code: {close_code})")
 
     async def receive_json(self, content, **kwargs):
         """

@@ -25,10 +25,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 # Application definition
+ENABLE_DAPHNE = config('ENABLE_DAPHNE', default=False, cast=bool)
 INSTALLED_APPS = [
-    # Must come first: makes `runserver` serve ASGI so the planner's
-    # live-sync WebSocket (/ws/timetable/...) works in development.
-    'daphne',
+    *(['daphne'] if ENABLE_DAPHNE else []),
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

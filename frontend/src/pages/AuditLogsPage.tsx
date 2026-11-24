@@ -57,13 +57,9 @@ export const AuditLogsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Security & Audit Trails</span>
-        </div>
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Schedule Audit Logs</h1>
-        <p className="text-sm text-slate-500">
-          Immutable history of all timetable modifications, slot reservations, review submissions, and publications.
+        <p className="text-sm text-slate-500 mt-1">
+          History of timetable modifications, slot assignments, review submissions, and publications.
         </p>
       </div>
 

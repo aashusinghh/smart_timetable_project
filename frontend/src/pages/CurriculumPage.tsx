@@ -86,12 +86,8 @@ export const CurriculumPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary-50 dark:bg-primary-950/70 text-primary-700 dark:text-primary-300 mb-2">
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>Curriculum Structure</span>
-        </div>
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Branch Curriculum Builder</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Map required and elective courses from catalog to specific branch semesters.
         </p>
       </div>

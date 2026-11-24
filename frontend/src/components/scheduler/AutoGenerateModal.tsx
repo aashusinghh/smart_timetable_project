@@ -83,7 +83,7 @@ export const AutoGenerateModal: React.FC<AutoGenerateModalProps> = ({
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart Auto-Scheduling</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Generate clash-free timetable using Google OR-Tools CP-SAT
+                Automatically allocate conflict-free timetable slots for selected branches
               </p>
             </div>
           </div>

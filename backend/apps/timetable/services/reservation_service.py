@@ -222,6 +222,20 @@ class TimetableReservationService:
         except ScheduledMeeting.DoesNotExist:
             return False
 
+        if user and not user.is_superuser and not user.has_role(Role.Code.SUPER_ADMIN):
+            cohort_branch = meeting.teaching_assignment.course_offering.cohort.branch
+            coord_branch_ids = user.get_coordinated_branch_ids() if hasattr(user, 'get_coordinated_branch_ids') else None
+            has_branch_coord = (
+                cohort_branch.id in coord_branch_ids
+                if coord_branch_ids is not None
+                else user.role_assignments.filter(
+                    role__code=Role.Code.BRANCH_COORDINATOR,
+                    branch=cohort_branch
+                ).exists()
+            )
+            if not has_branch_coord:
+                raise PermissionDenied(f"You do not have coordinator permissions for branch {cohort_branch.code}.")
+
         before_state = {
             'meeting_id': meeting.id,
             'course': meeting.teaching_assignment.course_offering.curriculum_item.course.code,
@@ -253,6 +267,131 @@ class TimetableReservationService:
 
         cls._broadcast_ws_event(schedule_version, "meeting.deleted", {'meeting_id': meeting_id})
         return True
+
+    @classmethod
+    @transaction.atomic
+    def clear_department_semester_meetings(
+        cls,
+        schedule_version: ScheduleVersion,
+        department_id: Optional[int] = None,
+        semester_no: Optional[int] = None,
+        branch_id: Optional[int] = None,
+        cohort_id: Optional[int] = None,
+        clear_all: bool = False,
+        user: Optional[User] = None
+    ) -> Dict[str, Any]:
+        """
+        Clears scheduled meetings and associated reservations for a specified
+        cohort, branch, semester, department, or entire draft schedule.
+        """
+        from rest_framework.exceptions import PermissionDenied
+        from apps.accounts.models import Role
+
+        if schedule_version.status in [ScheduleVersion.Status.PUBLISHED, ScheduleVersion.Status.ARCHIVED]:
+            raise PermissionDenied(f"Schedule version is {schedule_version.get_status_display()} and cannot be modified.")
+        if schedule_version.status == ScheduleVersion.Status.UNDER_REVIEW:
+            is_admin = user and (user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN))
+            if not is_admin:
+                raise PermissionDenied("Schedule version is currently UNDER_REVIEW and cannot be modified by coordinators.")
+
+        if user and not user.is_superuser and not user.has_role(Role.Code.SUPER_ADMIN):
+            coord_branch_ids = user.get_coordinated_branch_ids() if hasattr(user, 'get_coordinated_branch_ids') else None
+            if coord_branch_ids is not None:
+                if clear_all or department_id:
+                    raise PermissionDenied("Branch coordinators can only clear schedule meetings of their assigned branch.")
+                if branch_id and branch_id not in coord_branch_ids:
+                    raise PermissionDenied("You can only clear schedule meetings for your assigned branch.")
+                if cohort_id:
+                    from apps.academics.models import Cohort
+                    cohort = Cohort.objects.filter(id=cohort_id).first()
+                    if cohort and cohort.branch_id not in coord_branch_ids:
+                        raise PermissionDenied("You can only clear schedule meetings for your assigned branch.")
+
+        meetings_qs = ScheduledMeeting.objects.filter(schedule_version=schedule_version)
+
+        if not clear_all:
+            if cohort_id:
+                meetings_qs = meetings_qs.filter(
+                    teaching_assignment__course_offering__cohort_id=cohort_id
+                )
+            elif branch_id:
+                meetings_qs = meetings_qs.filter(
+                    teaching_assignment__course_offering__cohort__branch_id=branch_id
+                )
+                if semester_no is not None:
+                    meetings_qs = meetings_qs.filter(
+                        teaching_assignment__course_offering__cohort__semester_no=semester_no
+                    )
+            elif department_id:
+                meetings_qs = meetings_qs.filter(
+                    teaching_assignment__course_offering__cohort__branch__department_id=department_id
+                )
+                if semester_no is not None:
+                    meetings_qs = meetings_qs.filter(
+                        teaching_assignment__course_offering__cohort__semester_no=semester_no
+                    )
+            elif semester_no is not None:
+                meetings_qs = meetings_qs.filter(
+                    teaching_assignment__course_offering__cohort__semester_no=semester_no
+                )
+
+        meeting_ids = list(meetings_qs.select_for_update().values_list('id', flat=True))
+        deleted_count = len(meeting_ids)
+
+        if deleted_count > 0:
+            # Explicitly remove slot reservations
+            ProfessorSlotReservation.objects.filter(scheduled_meeting_id__in=meeting_ids).delete()
+            RoomSlotReservation.objects.filter(scheduled_meeting_id__in=meeting_ids).delete()
+            GroupSlotReservation.objects.filter(scheduled_meeting_id__in=meeting_ids).delete()
+
+            # Delete the meeting records
+            ScheduledMeeting.objects.filter(id__in=meeting_ids).delete()
+
+            # Audit record
+            ScheduleChangeAudit.objects.create(
+                schedule_version=schedule_version,
+                meeting_id=None,
+                action='CLEAR_TIMETABLE',
+                before_json={
+                    'department_id': department_id,
+                    'semester_no': semester_no,
+                    'branch_id': branch_id,
+                    'cohort_id': cohort_id,
+                    'clear_all': clear_all,
+                    'deleted_count': deleted_count,
+                    'deleted_meeting_ids': meeting_ids,
+                },
+                after_json={},
+                user=user
+            )
+
+            # Bump version revision for live sync
+            schedule_version.revision += 1
+            schedule_version.save(update_fields=['revision', 'updated_at'])
+
+            cls._broadcast_ws_event(
+                schedule_version,
+                "schedule.cleared",
+                {
+                    'schedule_version_id': schedule_version.id,
+                    'department_id': department_id,
+                    'semester_no': semester_no,
+                    'branch_id': branch_id,
+                    'cohort_id': cohort_id,
+                    'clear_all': clear_all,
+                    'deleted_count': deleted_count,
+                }
+            )
+
+        return {
+            'deleted_count': deleted_count,
+            'message': f"Successfully removed {deleted_count} class(es) from the timetable.",
+            'department_id': department_id,
+            'semester_no': semester_no,
+            'branch_id': branch_id,
+            'cohort_id': cohort_id,
+            'clear_all': clear_all,
+        }
 
     @classmethod
     @transaction.atomic

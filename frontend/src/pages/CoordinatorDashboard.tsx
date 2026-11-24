@@ -30,15 +30,11 @@ export const CoordinatorDashboard: React.FC = () => {
       <div className="border-b border-slate-200 dark:border-slate-800 pb-6 text-slate-900 dark:text-slate-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
-              <GitBranch className="w-3.5 h-3.5" />
-              <span>Branch coordinator</span>
-            </div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               Welcome, {user?.full_name || 'Coordinator'}
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-xl">
-              Coordinate weekly branch timetables with real-time sync, submit draft schedules for dean review, configure cohorts, and assign faculty.
+              Coordinate weekly branch timetables, submit draft schedules for review, configure cohorts, and assign faculty.
             </p>
 
             {coordinatorAssignment?.branch && (
@@ -76,7 +72,7 @@ export const CoordinatorDashboard: React.FC = () => {
           </div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Timetable Planner</h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-            Weekly 8-slot interactive grid with live WebSocket sync & submit-for-review workflow.
+            Weekly interactive grid to manage class meetings and submit drafts for review.
           </p>
         </Link>
 
