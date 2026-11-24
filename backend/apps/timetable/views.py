@@ -33,6 +33,7 @@ from .serializers import (
     ScheduleVersionSerializer,
     ScheduledMeetingSerializer,
     ValidationRequestSerializer,
+    SlotsAvailabilityRequestSerializer,
     SaveMeetingRequestSerializer,
     ScheduleChangeAuditSerializer,
     HolidayCalendarSerializer,
@@ -159,6 +160,40 @@ class ValidatePlacementView(APIView):
             start_slot=data['start_slot'],
             duration_slots=data.get('duration_slots', 1),
             room=room,
+            instruction_group_ids=data.get('instruction_group_ids'),
+            exclude_meeting_id=data.get('exclude_meeting_id'),
+            user=request.user,
+        )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class SlotsAvailabilityView(APIView):
+    """
+    Simultaneous Weekly Slot Availability Endpoint.
+    Calculates availability for all 40 slots simultaneously for the selected subject,
+    teacher, and room so the user sees all slot statuses at the same time without hovering.
+    """
+    permission_classes = [IsBranchCoordinatorOrReadOnly]
+
+    @extend_schema(
+        request=SlotsAvailabilityRequestSerializer,
+        description="Return availability status for all weekly slots simultaneously.",
+    )
+    def post(self, request):
+        serializer = SlotsAvailabilityRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        version = get_object_or_404(ScheduleVersion, id=data['schedule_version_id'])
+        assignment = get_object_or_404(TeachingAssignment, id=data['teaching_assignment_id'])
+        room = get_object_or_404(Room, id=data['room_id'])
+
+        result = TimetableValidator.get_slots_availability(
+            schedule_version=version,
+            teaching_assignment=assignment,
+            room=room,
+            duration_slots=data.get('duration_slots'),
             instruction_group_ids=data.get('instruction_group_ids'),
             exclude_meeting_id=data.get('exclude_meeting_id'),
             user=request.user,

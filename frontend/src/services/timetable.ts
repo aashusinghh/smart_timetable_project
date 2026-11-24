@@ -5,6 +5,8 @@ import {
   TimetableGridResponse,
   ValidatePlacementInput,
   ValidationResponse,
+  GetSlotsAvailabilityInput,
+  SlotsAvailabilityResponse,
   SaveMeetingInput,
   AvailableRoomItem,
   HolidayCalendar,
@@ -65,6 +67,12 @@ export const timetableService = {
   // Authoritative Validation
   validatePlacement: async (data: ValidatePlacementInput): Promise<ValidationResponse> => {
     const res = await api.post<ValidationResponse>('/timetable/validate', data);
+    return res.data;
+  },
+
+  // Simultaneous All-Slots Availability
+  getSlotsAvailability: async (data: GetSlotsAvailabilityInput): Promise<SlotsAvailabilityResponse> => {
+    const res = await api.post<SlotsAvailabilityResponse>('/timetable/slots-availability', data);
     return res.data;
   },
 

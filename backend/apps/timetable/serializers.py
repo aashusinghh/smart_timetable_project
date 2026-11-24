@@ -92,6 +92,17 @@ class ValidationRequestSerializer(serializers.Serializer):
     exclude_meeting_id = serializers.IntegerField(required=False, allow_null=True)
 
 
+class SlotsAvailabilityRequestSerializer(serializers.Serializer):
+    schedule_version_id = serializers.IntegerField()
+    teaching_assignment_id = serializers.IntegerField()
+    room_id = serializers.IntegerField()
+    duration_slots = serializers.IntegerField(min_value=1, max_value=4, required=False, default=None)
+    instruction_group_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, default=list
+    )
+    exclude_meeting_id = serializers.IntegerField(required=False, allow_null=True)
+
+
 class SaveMeetingRequestSerializer(serializers.Serializer):
     schedule_version_id = serializers.IntegerField()
     teaching_assignment_id = serializers.IntegerField()

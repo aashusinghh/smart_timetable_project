@@ -421,6 +421,32 @@ export interface ValidatePlacementInput {
   exclude_meeting_id?: number | null;
 }
 
+export interface SlotAvailabilityItem {
+  weekday: number;
+  slot_no: number;
+  allowed: boolean;
+  status: 'AVAILABLE' | 'BUSY';
+  conflict_type: string | null;
+  message: string;
+}
+
+export interface SlotsAvailabilityResponse {
+  schedule_version_id: number;
+  teaching_assignment_id: number;
+  room_id: number;
+  duration_slots: number;
+  slots: SlotAvailabilityItem[];
+}
+
+export interface GetSlotsAvailabilityInput {
+  schedule_version_id: number;
+  teaching_assignment_id: number;
+  room_id: number;
+  duration_slots?: number;
+  instruction_group_ids?: number[];
+  exclude_meeting_id?: number | null;
+}
+
 export interface SaveMeetingInput {
   schedule_version_id: number;
   teaching_assignment_id: number;

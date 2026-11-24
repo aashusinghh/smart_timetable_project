@@ -288,3 +288,273 @@ class TimetableValidator:
             'conflicts': conflicts,
             'warnings': warnings,
         }
+
+    @classmethod
+    def get_slots_availability(
+        cls,
+        schedule_version: ScheduleVersion,
+        teaching_assignment: TeachingAssignment,
+        room: Room,
+        duration_slots: Optional[int] = None,
+        instruction_group_ids: Optional[List[int]] = None,
+        exclude_meeting_id: Optional[int] = None,
+        user: Optional[User] = None,
+        check_permissions: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Calculates availability and conflict states for all weekly slots (5 weekdays x 8 slots)
+        simultaneously for a given course offering/assignment, room, and schedule version.
+        Optimized with bulk pre-fetching for instant grid-wide visibility.
+        """
+        offering = teaching_assignment.course_offering
+        cohort = offering.cohort
+        curriculum_item = offering.curriculum_item
+        course = curriculum_item.course
+        delivery_rule = getattr(course, 'delivery_rule', None)
+
+        if duration_slots is None or duration_slots <= 0:
+            if course.course_type == Course.CourseType.LAB:
+                duration_slots = 3
+            elif delivery_rule:
+                duration_slots = delivery_rule.duration_slots
+            else:
+                duration_slots = 1
+
+        global_conflict = None
+
+        # 1. User Permission Check
+        if check_permissions and user and not user.is_superuser and not user.has_role(Role.Code.SUPER_ADMIN):
+            coord_branch_ids = user.get_coordinated_branch_ids() if hasattr(user, 'get_coordinated_branch_ids') else None
+            has_branch_coord = (
+                cohort.branch_id in coord_branch_ids
+                if coord_branch_ids is not None
+                else user.role_assignments.filter(
+                    role__code=Role.Code.BRANCH_COORDINATOR,
+                    branch=cohort.branch
+                ).exists()
+            )
+            if not has_branch_coord:
+                global_conflict = {
+                    'type': 'PERMISSION_DENIED',
+                    'message': f"You do not have coordinator permissions for branch {cohort.branch.code}."
+                }
+
+        # 2. Version status
+        if not global_conflict and check_permissions and user:
+            is_admin = user.is_superuser or user.has_role(Role.Code.SUPER_ADMIN)
+            if schedule_version.status == ScheduleVersion.Status.PUBLISHED:
+                global_conflict = {
+                    'type': 'VERSION_LOCKED',
+                    'message': "Schedule version is PUBLISHED and cannot be modified."
+                }
+            elif schedule_version.status == ScheduleVersion.Status.ARCHIVED:
+                global_conflict = {
+                    'type': 'VERSION_LOCKED',
+                    'message': "Schedule version is ARCHIVED and cannot be modified."
+                }
+            elif schedule_version.status == ScheduleVersion.Status.UNDER_REVIEW and not is_admin:
+                global_conflict = {
+                    'type': 'VERSION_UNDER_REVIEW',
+                    'message': "Schedule version is currently UNDER_REVIEW by administrators."
+                }
+
+        # 3. Term consistency
+        if not global_conflict and offering.term_id != schedule_version.term_id:
+            global_conflict = {
+                'type': 'TERM_MISMATCH',
+                'message': "Course offering academic term does not match the schedule version term."
+            }
+
+        # 4. Quota check
+        quota_exceeded = False
+        scheduled_count = 0
+        if delivery_rule:
+            existing_meetings_query = ScheduledMeeting.objects.filter(
+                schedule_version=schedule_version,
+                teaching_assignment=teaching_assignment
+            )
+            if exclude_meeting_id:
+                existing_meetings_query = existing_meetings_query.exclude(id=exclude_meeting_id)
+            scheduled_count = existing_meetings_query.count()
+            if scheduled_count >= delivery_rule.weekly_meetings:
+                quota_exceeded = True
+
+        # 5. Room type compatibility
+        room_type_incompatible = False
+        if course.course_type == Course.CourseType.LAB:
+            allowed_lab_types = [
+                Room.RoomType.COMPUTER_LAB,
+                Room.RoomType.ELECTRONICS_LAB,
+                Room.RoomType.CHEMISTRY_LAB,
+            ]
+            if room.room_type not in allowed_lab_types:
+                room_type_incompatible = True
+
+        # 6. Room capacity check
+        target_groups = []
+        if teaching_assignment.instruction_group:
+            target_groups.append(teaching_assignment.instruction_group)
+            total_students = teaching_assignment.instruction_group.size
+        elif instruction_group_ids:
+            target_groups = list(InstructionGroup.objects.filter(id__in=instruction_group_ids))
+            total_students = min(sum(g.size for g in target_groups), cohort.student_count) if cohort.student_count else sum(g.size for g in target_groups)
+        else:
+            target_groups = list(cohort.instruction_groups.all())
+            total_students = cohort.student_count
+
+        capacity_insufficient = room.capacity < total_students
+
+        # 7. Pre-fetch Professor Reservations & Unavailability
+        prof_res_qs = ProfessorSlotReservation.objects.filter(
+            schedule_version=schedule_version,
+            professor=teaching_assignment.professor,
+        )
+        if exclude_meeting_id:
+            prof_res_qs = prof_res_qs.exclude(scheduled_meeting_id=exclude_meeting_id)
+        prof_res_slots = set(prof_res_qs.values_list('weekday', 'slot_no'))
+
+        prof_unavail = list(ProfessorUnavailability.objects.filter(
+            professor=teaching_assignment.professor
+        ))
+
+        # 8. Pre-fetch Room Reservations & Unavailability
+        room_res_qs = RoomSlotReservation.objects.filter(
+            schedule_version=schedule_version,
+            room=room,
+        )
+        if exclude_meeting_id:
+            room_res_qs = room_res_qs.exclude(scheduled_meeting_id=exclude_meeting_id)
+        room_res_slots = set(room_res_qs.values_list('weekday', 'slot_no'))
+
+        room_unavail = list(RoomUnavailability.objects.filter(room=room))
+
+        # 9. Pre-fetch Group Reservations
+        target_group_ids = [g.id for g in target_groups]
+        grp_res_qs = GroupSlotReservation.objects.filter(
+            schedule_version=schedule_version,
+            instruction_group_id__in=target_group_ids,
+        )
+        if exclude_meeting_id:
+            grp_res_qs = grp_res_qs.exclude(scheduled_meeting_id=exclude_meeting_id)
+        grp_res_slots = set(grp_res_qs.values_list('weekday', 'slot_no'))
+
+        # 10. Pre-fetch Cohort meetings
+        cohort_meetings = ScheduledMeeting.objects.filter(
+            schedule_version=schedule_version,
+            teaching_assignment__course_offering__cohort=cohort,
+        )
+        if exclude_meeting_id:
+            cohort_meetings = cohort_meetings.exclude(id=exclude_meeting_id)
+
+        cohort_busy_slots = set()
+        for m in cohort_meetings.values('weekday', 'start_slot', 'duration_slots'):
+            for s in range(m['start_slot'], m['start_slot'] + m['duration_slots']):
+                cohort_busy_slots.add((m['weekday'], s))
+
+        # Evaluate all 40 slots
+        slots = []
+        for weekday in range(1, 6):
+            for start_slot in range(1, 9):
+                end_slot = start_slot + duration_slots - 1
+                target_slots = list(range(start_slot, min(end_slot + 1, 9)))
+                slot_conflicts = []
+
+                if global_conflict:
+                    slot_conflicts.append(global_conflict)
+                elif quota_exceeded:
+                    slot_conflicts.append({
+                        'type': 'QUOTA_EXCEEDED',
+                        'message': f"Weekly quota reached ({scheduled_count}/{delivery_rule.weekly_meetings})."
+                    })
+                elif room_type_incompatible:
+                    slot_conflicts.append({
+                        'type': 'ROOM_TYPE_INCOMPATIBLE',
+                        'message': f"Course '{course.name}' requires a laboratory room."
+                    })
+                elif capacity_insufficient:
+                    slot_conflicts.append({
+                        'type': 'CAPACITY_INSUFFICIENT',
+                        'message': f"Room {room.room_no} capacity ({room.capacity}) is insufficient for {total_students} students."
+                    })
+                elif end_slot > 8:
+                    slot_conflicts.append({
+                        'type': 'OUT_OF_BOUNDS',
+                        'message': f"Meeting extends past timetable limit (18:00)."
+                    })
+                elif start_slot <= 4 and end_slot >= 5:
+                    slot_conflicts.append({
+                        'type': 'LUNCH_CROSSING',
+                        'message': "Classes cannot cross the mandatory lunch break (12:30–14:00)."
+                    })
+                elif course.course_type == Course.CourseType.LAB and start_slot not in [1, 2, 5, 6]:
+                    slot_conflicts.append({
+                        'type': 'LAB_START_INVALID',
+                        'message': "3-hour laboratory must start at slot 1, 2, 5, or 6."
+                    })
+                else:
+                    # Check cohort collision
+                    if any((weekday, s) in cohort_busy_slots for s in target_slots):
+                        slot_conflicts.append({
+                            'type': 'COHORT_BUSY',
+                            'message': "Batch already has a class scheduled at this slot."
+                        })
+                    # Check professor collision
+                    elif any((weekday, s) in prof_res_slots for s in target_slots):
+                        slot_conflicts.append({
+                            'type': 'PROFESSOR_BUSY',
+                            'message': f"Professor {teaching_assignment.professor.full_name} is already busy at this slot."
+                        })
+                    else:
+                        for unavail in prof_unavail:
+                            if unavail.weekday is None or unavail.weekday == weekday:
+                                if not (end_slot < unavail.start_slot or start_slot > unavail.end_slot):
+                                    slot_conflicts.append({
+                                        'type': 'PROFESSOR_UNAVAILABLE',
+                                        'message': f"Professor {teaching_assignment.professor.full_name} unavailable: {unavail.reason}"
+                                    })
+                                    break
+
+                    # Check room collision
+                    if not slot_conflicts:
+                        if any((weekday, s) in room_res_slots for s in target_slots):
+                            slot_conflicts.append({
+                                'type': 'ROOM_BUSY',
+                                'message': f"Room {room.room_no} ({room.building.code}) is occupied at this slot."
+                            })
+                        else:
+                            for unavail in room_unavail:
+                                if unavail.weekday is None or unavail.weekday == weekday:
+                                    if not (end_slot < unavail.start_slot or start_slot > unavail.end_slot):
+                                        slot_conflicts.append({
+                                            'type': 'ROOM_UNAVAILABLE',
+                                            'message': f"Room {room.room_no} blocked: {unavail.reason}"
+                                        })
+                                        break
+
+                    # Check group collision
+                    if not slot_conflicts:
+                        if any((weekday, s) in grp_res_slots for s in target_slots):
+                            slot_conflicts.append({
+                                'type': 'GROUP_BUSY',
+                                'message': "Student group is already scheduled at this slot."
+                            })
+
+                is_allowed = len(slot_conflicts) == 0
+                conflict = slot_conflicts[0] if slot_conflicts else None
+
+                slots.append({
+                    'weekday': weekday,
+                    'slot_no': start_slot,
+                    'allowed': is_allowed,
+                    'status': 'AVAILABLE' if is_allowed else 'BUSY',
+                    'conflict_type': conflict['type'] if conflict else None,
+                    'message': conflict['message'] if conflict else f"Room {room.room_no} Available",
+                })
+
+        return {
+            'schedule_version_id': schedule_version.id,
+            'teaching_assignment_id': teaching_assignment.id,
+            'room_id': room.id,
+            'duration_slots': duration_slots,
+            'slots': slots,
+        }

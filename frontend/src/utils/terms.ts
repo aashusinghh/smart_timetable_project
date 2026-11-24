@@ -1,6 +1,19 @@
 import { AcademicTerm } from '../types';
 
 /**
+ * Format academic term names to clean, standardized text:
+ * e.g. "Odd Semester 2026-27 (Autumn)" -> "Odd Semester 2026 - 2027"
+ * "Even Semester 2026-27 (Spring)" -> "Even Semester 2026 - 2027"
+ */
+export function formatTermName(name?: string | null): string {
+  if (!name) return '';
+  return name
+    .replace(/\s*\((?:Autumn|Spring|autumn|spring)\)/gi, '')
+    .replace(/(\d{4})-(\d{2})(?!\d)/g, (_, y1, y2) => `${y1} - 20${y2}`)
+    .trim();
+}
+
+/**
  * The term to show by default: the one running today, otherwise the next one
  * to start, otherwise the first in the list.
  */

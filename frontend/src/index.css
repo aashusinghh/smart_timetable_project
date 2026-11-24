@@ -25,3 +25,98 @@
     @apply bg-primary-200 text-primary-950;
   }
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm 8mm;
+  }
+
+  html,
+  body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Force 100% deep jet black on all text in print mode - no faded, grey, or low-contrast text */
+  *,
+  *::before,
+  *::after {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  #root,
+  #root > div,
+  main,
+  .min-h-screen,
+  div,
+  section,
+  header,
+  footer,
+  table,
+  tr,
+  th,
+  td {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+
+  /* Force solid black borders in print */
+  .border,
+  .border-t,
+  .border-b,
+  .border-l,
+  .border-r,
+  .border-2,
+  .border-t-2,
+  .border-b-2,
+  table,
+  th,
+  td {
+    border-color: #000000 !important;
+  }
+
+  /* Completely override dark mode in print to guarantee crisp white background */
+  html.dark,
+  body.dark,
+  .dark,
+  .dark #root,
+  .dark main,
+  .dark div,
+  .dark table,
+  .dark tr,
+  .dark th,
+  .dark td {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  table, tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+}

@@ -360,7 +360,7 @@ export const BranchTimetablePage: React.FC = () => {
                       ? 'bg-amber-500 text-white'
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
-                  title="Autumn / Odd Semesters"
+                  title="Odd Semesters"
                 >
                   Odd
                 </button>
@@ -372,7 +372,7 @@ export const BranchTimetablePage: React.FC = () => {
                       ? 'bg-amber-500 text-white'
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
-                  title="Spring / Even Semesters"
+                  title="Even Semesters"
                 >
                   Even
                 </button>
@@ -533,26 +533,28 @@ export const BranchTimetablePage: React.FC = () => {
       {/* ---------------------------------------------------------- */}
       {/* Printable Masthead (Visible ONLY in Print Mode) */}
       {/* ---------------------------------------------------------- */}
-      <div className="hidden print:block mb-4 border-b-2 border-slate-900 pb-3">
-        <div className="flex items-start justify-between">
+      <div className="hidden print:block mb-4 border-b-2 border-black pb-3 bg-white text-black">
+        <div className="flex items-start justify-between pb-2 border-b border-black">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+            <h1 className="text-xl font-black tracking-tight text-black uppercase">
               National Institute of Technology Jamshedpur
             </h1>
-            <p className="text-xs font-semibold text-slate-800">
+            <p className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
               Office of the Dean Academic Affairs • Official Academic Timetable
             </p>
           </div>
-          <div className="text-right text-[10px] text-slate-600 font-mono">
-            <p className="font-bold text-slate-900 uppercase">Status: Official Published</p>
-            <p>Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+          <div className="text-right text-[10px] text-black font-mono">
+            <span className="inline-block px-2 py-0.5 border border-black font-bold uppercase text-black bg-white rounded">
+              Status: Official Published
+            </span>
+            <p className="mt-1 text-slate-700">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
           </div>
         </div>
-        <div className="mt-3 grid grid-cols-4 gap-2 text-xs font-semibold bg-slate-100 p-2.5 rounded border border-slate-300 text-slate-900">
-          <div><span className="font-normal text-slate-600">Year:</span> {activeAcademicYear?.name}</div>
-          <div><span className="font-normal text-slate-600">Department:</span> {activeDepartment?.name}</div>
-          <div><span className="font-normal text-slate-600">Degree:</span> {activeBranch?.name} ({activeBranch?.code})</div>
-          <div><span className="font-normal text-slate-600">Semester:</span> Sem {activeSemester} {selectedCohortId ? `(Sec ${activeCohort?.section_code})` : ''}</div>
+        <div className="mt-2.5 grid grid-cols-4 gap-2 text-xs font-semibold bg-white p-2.5 rounded border-2 border-black text-black">
+          <div><span className="font-bold text-slate-600 block text-[10px] uppercase">Year:</span> {activeAcademicYear?.name}</div>
+          <div><span className="font-bold text-slate-600 block text-[10px] uppercase">Department:</span> {activeDepartment?.name}</div>
+          <div><span className="font-bold text-slate-600 block text-[10px] uppercase">Degree:</span> {activeBranch?.name} ({activeBranch?.code})</div>
+          <div><span className="font-bold text-slate-600 block text-[10px] uppercase">Semester:</span> Sem {activeSemester} {selectedCohortId ? `(Sec ${activeCohort?.section_code})` : ''}</div>
         </div>
       </div>
 
@@ -636,17 +638,17 @@ export const BranchTimetablePage: React.FC = () => {
           </div>
 
           {/* Timetable Table Grid */}
-          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 print:border-slate-900">
-            <table className="w-full min-w-[720px] table-fixed border-collapse border border-slate-200 dark:border-slate-800 print:border-slate-900 text-xs">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 print:border-none print:p-0">
+            <table className="w-full min-w-[720px] print:min-w-full table-fixed border-collapse border border-slate-200 dark:border-slate-800 print:border-2 print:border-black text-xs print:bg-white">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 print:bg-slate-100 text-slate-700 dark:text-slate-300 print:text-black font-semibold h-10">
-                  <th className="p-2.5 border border-slate-200 dark:border-slate-800 print:border-slate-900 w-28 text-left">
+                <tr className="bg-slate-50 dark:bg-slate-800/60 print:bg-white text-slate-700 dark:text-slate-300 print:text-black font-black h-10 print:h-7">
+                  <th className="p-2.5 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black w-28 text-left font-black print:bg-white uppercase tracking-wider text-[11px]">
                     Time Slot
                   </th>
                   {WEEKDAYS.map((day) => (
                     <th
                       key={day.id}
-                      className="p-2.5 border border-slate-200 dark:border-slate-800 print:border-slate-900 text-center font-semibold"
+                      className="p-2.5 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black text-center font-black print:bg-white uppercase tracking-wider text-[11px]"
                     >
                       {day.name}
                     </th>
@@ -658,13 +660,13 @@ export const BranchTimetablePage: React.FC = () => {
                   const isLunchBreakSlot = slot.no === 4;
                   return (
                     <React.Fragment key={slot.no}>
-                      <tr className="h-20">
+                      <tr className="h-20 print:h-[48px] print:bg-white">
                         {/* Time Slot Column */}
-                        <td className="p-2 border border-slate-200 dark:border-slate-800 print:border-slate-900 bg-slate-50/50 dark:bg-slate-800/30 print:bg-slate-50 text-slate-500 print:text-black font-mono text-[11px] align-top">
-                          <div className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">
+                        <td className="p-2 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black bg-slate-50/50 dark:bg-slate-800/30 print:bg-white text-slate-500 print:text-black font-mono text-[11px] align-top">
+                          <div className="font-black text-slate-800 dark:text-slate-200 print:text-black text-[11px] leading-tight">
                             Slot {slot.no}
                           </div>
-                          <div className="text-[10px] text-slate-400 print:text-slate-600 mt-0.5">
+                          <div className="text-[10px] text-slate-400 print:text-black font-bold mt-0.5 leading-tight">
                             {slot.time}
                           </div>
                         </td>
@@ -675,36 +677,36 @@ export const BranchTimetablePage: React.FC = () => {
                           return (
                             <td
                               key={day.id}
-                              className="p-1.5 border border-slate-200 dark:border-slate-800 print:border-slate-900 h-20 align-top bg-white dark:bg-slate-900 print:bg-white"
+                              className="p-1.5 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black h-20 print:h-[48px] align-top bg-white dark:bg-slate-900 print:bg-white"
                             >
                               {meeting ? (
                                 <div
-                                  className={`p-2 rounded-lg border text-[11px] h-full flex flex-col justify-between overflow-hidden print:border-slate-400 ${
+                                  className={`p-2 print:p-1 rounded-lg border text-[11px] h-full flex flex-col justify-between overflow-hidden print:bg-white print:border-2 print:border-black ${
                                     meeting.course_type === 'LAB'
-                                      ? 'bg-purple-50 dark:bg-purple-950/40 print:bg-slate-100 border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200 print:text-black'
-                                      : 'bg-blue-50 dark:bg-blue-950/40 print:bg-slate-50 border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200 print:text-black'
+                                      ? 'bg-purple-50 dark:bg-purple-950/40 print:bg-white border-purple-200 dark:border-purple-800/60 text-purple-950 dark:text-purple-200 print:text-black'
+                                      : 'bg-blue-50 dark:bg-blue-950/40 print:bg-white border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200 print:text-black'
                                   }`}
                                 >
                                   <div>
-                                    <div className="flex items-center justify-between gap-1 min-w-0 font-semibold">
-                                      <span className="font-mono flex-shrink-0 print:font-bold">
+                                    <div className="flex items-center justify-between gap-1 min-w-0 font-black">
+                                      <span className="font-mono flex-shrink-0 font-black text-black">
                                         {meeting.course_code}
                                       </span>
-                                      <span className="text-[10px] px-1.5 py-0.2 rounded whitespace-nowrap truncate min-w-0 bg-white/80 dark:bg-black/40 print:border print:border-slate-400 font-semibold">
+                                      <span className="text-[10px] px-1.5 py-0.2 rounded whitespace-nowrap truncate min-w-0 bg-white/80 dark:bg-black/40 print:bg-white print:border print:border-black font-black text-black">
                                         Room {meeting.room_no}
                                       </span>
                                     </div>
-                                    <p className="truncate font-medium mt-0.5">
+                                    <p className="truncate font-black text-black mt-0.5 text-[10px] leading-tight">
                                       {meeting.course_name}
                                     </p>
                                   </div>
 
-                                  <div className="pt-1 border-t border-black/5 dark:border-white/5 print:border-slate-300 flex items-center justify-between text-[10px] opacity-85 print:opacity-100">
-                                    <span className="truncate">{meeting.professor_name}</span>
+                                  <div className="pt-0.5 border-t border-black/5 dark:border-white/5 print:border-t print:border-black flex items-center justify-between text-[10px] print:text-[9px] font-black leading-none text-black">
+                                    <span className="truncate font-black">{meeting.professor_name}</span>
                                     {meeting.group_codes &&
                                       meeting.group_codes.length > 0 &&
                                       !meeting.group_codes.includes('ALL') && (
-                                        <span className="font-mono font-semibold ml-1 shrink-0 print:font-bold">
+                                        <span className="font-mono font-black ml-1 shrink-0 text-black">
                                           [{meeting.group_codes.join(', ')}]
                                         </span>
                                       )}
@@ -718,12 +720,12 @@ export const BranchTimetablePage: React.FC = () => {
 
                       {/* Lunch Break Row */}
                       {isLunchBreakSlot && (
-                        <tr className="bg-amber-50/70 dark:bg-amber-950/30 print:bg-slate-200 text-amber-800 dark:text-amber-300 print:text-black text-center text-[11px] font-semibold h-7">
-                          <td className="p-1 border border-slate-200 dark:border-slate-800 print:border-slate-900 font-mono whitespace-nowrap">
+                        <tr className="bg-amber-50/70 dark:bg-amber-950/30 print:bg-white text-amber-800 dark:text-amber-300 print:text-black text-center text-[11px] font-black h-7 print:h-6 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black">
+                          <td className="p-1 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black font-mono font-black whitespace-nowrap print:bg-white print:text-black">
                             <Coffee className="w-3.5 h-3.5 inline-block align-[-2px] mr-1 print:hidden" />
                             12:30–14:00
                           </td>
-                          <td colSpan={5} className="p-1 border border-slate-200 dark:border-slate-800 print:border-slate-900 uppercase tracking-wider text-[10px]">
+                          <td colSpan={5} className="p-1 border border-slate-200 dark:border-slate-800 print:border-2 print:border-black print:bg-white uppercase tracking-wider text-[11px] font-black print:text-black">
                             University Lunch Break & Mid-Day Recess
                           </td>
                         </tr>
@@ -736,14 +738,14 @@ export const BranchTimetablePage: React.FC = () => {
           </div>
 
           {/* Printable Footer */}
-          <div className="hidden print:flex items-center justify-between pt-6 border-t border-slate-300 text-[10px] text-slate-600">
+          <div className="hidden print:flex items-center justify-between pt-3 mt-2 border-t-2 border-black text-[10px] text-black font-bold">
             <div>
-              <p className="font-semibold text-slate-800">Office of the Dean (Academic Affairs)</p>
-              <p>National Institute of Technology Jamshedpur</p>
+              <p className="font-black text-black">Office of the Dean (Academic Affairs)</p>
+              <p className="text-black font-bold">National Institute of Technology Jamshedpur</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-slate-800">Head of Department</p>
-              <p>{activeDepartment?.name}</p>
+              <p className="font-black text-black">Head of Department</p>
+              <p className="text-black font-bold">{activeDepartment?.name}</p>
             </div>
           </div>
         </div>
